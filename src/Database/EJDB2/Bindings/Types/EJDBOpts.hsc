@@ -13,8 +13,8 @@ import Database.EJDB2.Bindings.Types.EJDBHttp
 
 #include <ejdb2/ejdb2.h>
 
-data EJDBOpts = EJDBOpts { iwkvOpts :: !IWKVOpts
-                         , ejdbHttp :: !EJDBHttp
+data EJDBOpts = EJDBOpts { kv :: !IWKVOpts
+                         , http :: !EJDBHttp
                          , noWal :: !CBool
                          , sortBufferSz :: !CUInt
                          , documentBufferSz :: !CUInt }
