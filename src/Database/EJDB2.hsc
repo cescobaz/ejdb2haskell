@@ -98,7 +98,7 @@ instance Storable EJDB_OPTS where
             #{poke EJDB_OPTS, sort_buffer_sz} ptr sort_buffer_sz
             #{poke EJDB_OPTS, document_buffer_sz} ptr document_buffer_sz
 
-foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_init" c_ejdb_init :: IWRC
+foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_init" c_ejdb_init :: IO IWRC
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_open" c_ejdb_open
     :: Ptr EJDB_OPTS -> Ptr EJDB -> IO IWRC
