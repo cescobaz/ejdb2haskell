@@ -14,7 +14,7 @@ type IWRC = CUIntMax
 
 type IWKVOpenFlags = CUChar
 
-data IWKV_WAL_OPTS = IWKV_WAL_OPTS CBool  CBool  CUInt  CUInt CUIntMax  CUChar 
+data IWKV_WAL_OPTS = IWKV_WAL_OPTS !CBool  !CBool  !CUInt  !CUInt !CUIntMax  !CUChar 
 instance Storable IWKV_WAL_OPTS where
         sizeOf _ = #{size IWKV_WAL_OPTS}
         alignment _  = #{alignment IWKV_WAL_OPTS}
@@ -36,7 +36,7 @@ instance Storable IWKV_WAL_OPTS where
 
 
 data IWKV_OPTS =
-    IWKV_OPTS (Ptr CString) CUInt CInt IWKVOpenFlags CBool IWKV_WAL_OPTS
+    IWKV_OPTS !(Ptr CString) !CUInt !CInt !IWKVOpenFlags !CBool !IWKV_WAL_OPTS
 instance Storable IWKV_OPTS where
         sizeOf _ = #{size IWKV_OPTS}
         alignment _  = #{alignment IWKV_OPTS}
@@ -58,7 +58,7 @@ instance Storable IWKV_OPTS where
 
 newtype EJDB = EJDB (Ptr EJDB)
 
-data EJDB_HTTP = EJDB_HTTP CBool CInt CString CString CBool CBool CUIntMax
+data EJDB_HTTP = EJDB_HTTP !CBool !CInt !CString !CString !CBool !CBool !CUIntMax
 instance Storable EJDB_HTTP where
         sizeOf _ = #{size EJDB_HTTP}
         alignment _ = #{alignment EJDB_HTTP}
@@ -80,7 +80,7 @@ instance Storable EJDB_HTTP where
            #{poke EJDB_HTTP, read_anon} ptr read_anon
            #{poke EJDB_HTTP, max_body_size} ptr max_body_size
 
-data EJDB_OPTS = EJDB_OPTS IWKV_OPTS EJDB_HTTP CBool CUInt CUInt
+data EJDB_OPTS = EJDB_OPTS !IWKV_OPTS !EJDB_HTTP !CBool !CUInt !CUInt
 instance Storable EJDB_OPTS where
         sizeOf _ = #{size EJDB_OPTS}
         alignment _ = #{alignment EJDB_OPTS}
@@ -101,4 +101,6 @@ instance Storable EJDB_OPTS where
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_init" c_ejdb_init :: IWRC
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_open" c_ejdb_open
-    :: Ptr EJDB_OPTS -> Ptr EJDB -> IWRC
+    :: Ptr EJDB_OPTS -> Ptr EJDB -> IO IWRC
+foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_close" c_ejdb_close
+    :: Ptr EJDB -> IO IWRC
