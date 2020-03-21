@@ -13,7 +13,14 @@ type IWRC = CUIntMax
 
 type IWKVOpenFlags = CUChar
 
-data IWKV_WAL_OPTS = IWKV_WAL_OPTS !CBool  !CBool  !CUInt  !CUInt !CUIntMax  !CUChar 
+data IWKV_WAL_OPTS = IWKV_WAL_OPTS { enabled :: !CBool
+                                   , checkCRCOnCheckpoint :: !CBool
+                                   , savepointTimeoutSec :: !CUInt
+                                   , checkpointTimeoutSec :: !CUInt
+                                   , walBufferSz :: !CUIntMax
+                                   , checkpointBufferSz :: !CUChar
+                                   , walLockInterceptor :: !(FunPtr (CBool -> Ptr () -> IO IWRC))
+                                   , walLockInterceptorOpaque :: !(Ptr ()) }
 instance Storable IWKV_WAL_OPTS where
         sizeOf _ = #{size IWKV_WAL_OPTS}
         alignment _  = #{alignment IWKV_WAL_OPTS}
@@ -24,14 +31,18 @@ instance Storable IWKV_WAL_OPTS where
           checkpoint_timeout_sec <- #{peek IWKV_WAL_OPTS, checkpoint_timeout_sec} ptr
           wal_buffer_sz <- #{peek IWKV_WAL_OPTS, wal_buffer_sz} ptr
           checkpoint_buffer_sz <- #{peek IWKV_WAL_OPTS, checkpoint_buffer_sz} ptr
-          return $ IWKV_WAL_OPTS enabled check_crc_on_checkpoint savepoint_timeout_sec checkpoint_timeout_sec wal_buffer_sz checkpoint_buffer_sz
-        poke ptr (IWKV_WAL_OPTS enabled check_crc_on_checkpoint savepoint_timeout_sec checkpoint_timeout_sec wal_buffer_sz checkpoint_buffer_sz) = do
+          wal_lock_interceptor <- #{peek IWKV_WAL_OPTS, wal_lock_interceptor} ptr
+          wal_lock_interceptor_opaque <- #{peek IWKV_WAL_OPTS, wal_lock_interceptor_opaque} ptr
+          return $ IWKV_WAL_OPTS enabled check_crc_on_checkpoint savepoint_timeout_sec checkpoint_timeout_sec wal_buffer_sz checkpoint_buffer_sz wal_lock_interceptor wal_lock_interceptor_opaque
+        poke ptr (IWKV_WAL_OPTS enabled check_crc_on_checkpoint savepoint_timeout_sec checkpoint_timeout_sec wal_buffer_sz checkpoint_buffer_sz wal_lock_interceptor wal_lock_interceptor_opaque) = do
           #{poke IWKV_WAL_OPTS, enabled} ptr enabled
           #{poke IWKV_WAL_OPTS, check_crc_on_checkpoint} ptr check_crc_on_checkpoint
           #{poke IWKV_WAL_OPTS, savepoint_timeout_sec} ptr savepoint_timeout_sec
           #{poke IWKV_WAL_OPTS, checkpoint_timeout_sec} ptr checkpoint_timeout_sec
           #{poke IWKV_WAL_OPTS, wal_buffer_sz} ptr wal_buffer_sz
           #{poke IWKV_WAL_OPTS, checkpoint_buffer_sz} ptr checkpoint_buffer_sz
+          #{poke IWKV_WAL_OPTS, wal_lock_interceptor} ptr wal_lock_interceptor
+          #{poke IWKV_WAL_OPTS, wal_lock_interceptor_opaque} ptr wal_lock_interceptor_opaque
 
 
 data IWKV_OPTS =
