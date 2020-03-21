@@ -4,12 +4,13 @@ import           Control.Monad
 
 import           Database.EJDB2.Bindings
 import           Database.EJDB2.Bindings.Types
+import           Database.EJDB2.Bindings.Types.EJDBOpts
 
 import           Foreign.Marshal.Alloc
 import           Foreign.Ptr
 import           Foreign.Storable
 
-open :: EJDB_OPTS -> IO ()
+open :: EJDBOpts -> IO ()
 open opts = do
     c_ejdb_init
     ejdb <- malloc

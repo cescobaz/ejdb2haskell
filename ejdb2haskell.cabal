@@ -11,6 +11,10 @@ library
   other-modules:
       Database.EJDB2.Bindings
     , Database.EJDB2.Bindings.Types
+    , Database.EJDB2.Bindings.Types.EJDBOpts
+    , Database.EJDB2.Bindings.Types.EJDBHttp
+    , Database.EJDB2.Bindings.Types.IWKVOpts
+    , Database.EJDB2.Bindings.Types.IWKVWalOpts
   build-depends:       base ^>=4.12.0.0
                      , bytestring ==0.10.10.0
   build-tool-depends:  hsc2hs:hsc2hs
