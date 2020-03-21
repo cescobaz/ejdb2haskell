@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
 
-module Database.EJDB2 where
+module Database.EJDB2.Bindings.Types where
 
 import           Data.ByteString.Char8
 
@@ -56,7 +55,7 @@ instance Storable IWKV_OPTS where
                 #{poke IWKV_OPTS, file_lock_fail_fast} ptr file_lock_fail_fast
                 #{poke IWKV_OPTS, wal} ptr wal
 
-newtype EJDB = EJDB (Ptr EJDB)
+type EJDBPtr = Ptr Int
 
 data EJDB_HTTP = EJDB_HTTP !CBool !CInt !CString !CString !CBool !CBool !CUIntMax
 instance Storable EJDB_HTTP where
@@ -80,7 +79,13 @@ instance Storable EJDB_HTTP where
            #{poke EJDB_HTTP, read_anon} ptr read_anon
            #{poke EJDB_HTTP, max_body_size} ptr max_body_size
 
-data EJDB_OPTS = EJDB_OPTS !IWKV_OPTS !EJDB_HTTP !CBool !CUInt !CUInt
+data EJDB_OPTS = EJDB_OPTS {
+        ptr :: !(Ptr EJDB_OPTS)
+      , iwkvOpts :: !IWKV_OPTS
+      , ejdbHttp :: !EJDB_HTTP
+      , noWal :: !CBool
+      , sortBufferSz :: !CUInt
+      , documentBufferSz :: !CUInt }
 instance Storable EJDB_OPTS where
         sizeOf _ = #{size EJDB_OPTS}
         alignment _ = #{alignment EJDB_OPTS}
@@ -90,17 +95,10 @@ instance Storable EJDB_OPTS where
            no_wal <- #{peek EJDB_OPTS, no_wal} ptr
            sort_buffer_sz <- #{peek EJDB_OPTS, sort_buffer_sz} ptr
            document_buffer_sz <- #{peek EJDB_OPTS, document_buffer_sz} ptr
-           return $ EJDB_OPTS kv http no_wal sort_buffer_sz document_buffer_sz
-        poke ptr (EJDB_OPTS  kv http no_wal sort_buffer_sz document_buffer_sz) = do
+           return $ EJDB_OPTS ptr kv http no_wal sort_buffer_sz document_buffer_sz
+        poke ptr (EJDB_OPTS _ kv http no_wal sort_buffer_sz document_buffer_sz) = do
             #{poke EJDB_OPTS, kv} ptr kv
             #{poke EJDB_OPTS, http} ptr http
             #{poke EJDB_OPTS, no_wal} ptr no_wal
             #{poke EJDB_OPTS, sort_buffer_sz} ptr sort_buffer_sz
             #{poke EJDB_OPTS, document_buffer_sz} ptr document_buffer_sz
-
-foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_init" c_ejdb_init :: IO IWRC
-
-foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_open" c_ejdb_open
-    :: Ptr EJDB_OPTS -> Ptr EJDB -> IO IWRC
-foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_close" c_ejdb_close
-    :: Ptr EJDB -> IO IWRC
