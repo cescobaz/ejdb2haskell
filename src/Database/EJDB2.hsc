@@ -58,7 +58,27 @@ instance Storable IWKV_OPTS where
 
 newtype EJDB = EJDB (Ptr EJDB)
 
-newtype EJDB_HTTP = EJDB_HTTP (Ptr EJDB_HTTP)
+data EJDB_HTTP = EJDB_HTTP CBool CInt CString CString CBool CBool CUIntMax
+instance Storable EJDB_HTTP where
+        sizeOf _ = #{size EJDB_HTTP}
+        alignment _ = #{alignment EJDB_HTTP}
+        peek ptr = do
+           enabled <- #{peek EJDB_HTTP, enabled} ptr
+           port <- #{peek EJDB_HTTP, port} ptr
+           bind <- #{peek EJDB_HTTP, bind} ptr
+           access_token <- #{peek EJDB_HTTP, access_token} ptr
+           blocking <- #{peek EJDB_HTTP, blocking} ptr
+           read_anon <- #{peek EJDB_HTTP, read_anon} ptr
+           max_body_size <- #{peek EJDB_HTTP, max_body_size} ptr
+           return $ EJDB_HTTP enabled port bind access_token blocking read_anon max_body_size
+        poke ptr (EJDB_HTTP enabled port bind access_token blocking read_anon max_body_size) = do
+           #{poke EJDB_HTTP, enabled} ptr enabled
+           #{poke EJDB_HTTP, port} ptr port
+           #{poke EJDB_HTTP, bind} ptr bind
+           #{poke EJDB_HTTP, access_token} ptr access_token
+           #{poke EJDB_HTTP, blocking} ptr blocking
+           #{poke EJDB_HTTP, read_anon} ptr read_anon
+           #{poke EJDB_HTTP, max_body_size} ptr max_body_size
 
 data EJDB_OPTS = EJDB_OPTS IWKV_OPTS EJDB_HTTP CBool CUInt CUInt
 instance Storable EJDB_OPTS where
@@ -81,4 +101,4 @@ instance Storable EJDB_OPTS where
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_init" c_ejdb_init :: IWRC
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_open" c_ejdb_open
-    :: EJDB_OPTS -> EJDB -> IWRC
+    :: Ptr EJDB_OPTS -> Ptr EJDB -> IWRC
