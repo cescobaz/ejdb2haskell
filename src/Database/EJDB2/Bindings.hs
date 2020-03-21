@@ -2,13 +2,11 @@
 
 module Database.EJDB2.Bindings where
 
-import           Data.ByteString.Char8
-
 import           Database.EJDB2.Bindings.Types
 import           Database.EJDB2.Bindings.Types.EJDBOpts
+import           Database.EJDB2.Bindings.Types.IWKVBase
 
 import           Foreign
-import           Foreign.C.String
 import           Foreign.C.Types
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_init" c_ejdb_init :: IO IWRC

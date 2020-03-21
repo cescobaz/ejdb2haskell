@@ -13,6 +13,7 @@ library
     , Database.EJDB2.Bindings.Types
     , Database.EJDB2.Bindings.Types.EJDBOpts
     , Database.EJDB2.Bindings.Types.EJDBHttp
+    , Database.EJDB2.Bindings.Types.IWKVBase
     , Database.EJDB2.Bindings.Types.IWKVOpts
     , Database.EJDB2.Bindings.Types.IWKVWalOpts
   build-depends:       base ^>=4.12.0.0

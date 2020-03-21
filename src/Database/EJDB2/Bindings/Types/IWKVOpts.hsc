@@ -38,3 +38,4 @@ instance Storable IWKVOpts where
                 #{poke IWKV_OPTS, oflags} ptr oflags
                 #{poke IWKV_OPTS, file_lock_fail_fast} ptr file_lock_fail_fast
                 #{poke IWKV_OPTS, wal} ptr wal
+

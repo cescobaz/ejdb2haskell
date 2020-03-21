@@ -1,15 +1,8 @@
-{-# LANGUAGE CPP #-}
-
 module Database.EJDB2.Bindings.Types where
 
 import           Foreign
-import           Foreign.C.String
-import           Foreign.C.Types
 
-#include <ejdb2/ejdb2.h>
-type IWRC = CUIntMax
-
-type EJDBPtr = Ptr Int
+type EJDBPtr = IntPtr
 
 data Error = ErrorOK
            | ErrorInvalidCollectionName
@@ -22,3 +15,4 @@ data Error = ErrorOK
            | ErrorTargetCollectionExists
            | ErrorPatchJsonNotObject
     deriving ( Eq, Show )
+

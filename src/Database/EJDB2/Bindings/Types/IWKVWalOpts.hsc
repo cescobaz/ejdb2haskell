@@ -8,7 +8,7 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import Database.EJDB2.Bindings.Types
+import Database.EJDB2.Bindings.Types.IWKVBase
 
 #include <ejdb2/ejdb2.h>
 
