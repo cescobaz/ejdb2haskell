@@ -29,8 +29,8 @@ instance Storable EJDBOpts where
            document_buffer_sz <- #{peek EJDB_OPTS, document_buffer_sz} ptr
            return $ EJDBOpts kv http no_wal sort_buffer_sz document_buffer_sz
         poke ptr (EJDBOpts kv http no_wal sort_buffer_sz document_buffer_sz) = do
-            #{poke EJDB_OPTS, kv} ptr kv
-            #{poke EJDB_OPTS, http} ptr http
-            #{poke EJDB_OPTS, no_wal} ptr no_wal
-            #{poke EJDB_OPTS, sort_buffer_sz} ptr sort_buffer_sz
-            #{poke EJDB_OPTS, document_buffer_sz} ptr document_buffer_sz
+           #{poke EJDB_OPTS, kv} ptr kv
+           #{poke EJDB_OPTS, http} ptr http
+           #{poke EJDB_OPTS, no_wal} ptr no_wal
+           #{poke EJDB_OPTS, sort_buffer_sz} ptr sort_buffer_sz
+           #{poke EJDB_OPTS, document_buffer_sz} ptr document_buffer_sz
