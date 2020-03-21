@@ -2,8 +2,6 @@
 
 module Database.EJDB2.Bindings.Types where
 
-import           Data.ByteString.Char8
-
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
@@ -12,3 +10,15 @@ import           Foreign.C.Types
 type IWRC = CUIntMax
 
 type EJDBPtr = Ptr Int
+
+data Error = ErrorOK
+           | ErrorInvalidCollectionName
+           | ErrorInvalidCollectionMeta
+           | ErrorInvalidCollectionIndexMeta
+           | ErrorInvalidIndexMode
+           | ErrorMismatchedIndexUniquenessMode
+           | ErrorUniqueIndexConstraintViolated
+           | ErrorCollectionNotFound
+           | ErrorTargetCollectionExists
+           | ErrorPatchJsonNotObject
+    deriving ( Eq, Show )
