@@ -17,7 +17,7 @@ data EJDBHttp = EJDBHttp { enabled :: !CBool
                          , accessToken :: Maybe String
                          , blocking :: !CBool
                          , readAnon :: !CBool
-                         , maxBodySize :: !CUIntMax }
+                         , maxBodySize :: !CSize }
 instance Storable EJDBHttp where
         sizeOf _ = #{size EJDB_HTTP}
         alignment _ = #{alignment EJDB_HTTP}

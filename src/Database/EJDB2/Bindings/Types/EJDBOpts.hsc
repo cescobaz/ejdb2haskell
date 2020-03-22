@@ -8,16 +8,16 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import Database.EJDB2.Bindings.Types.IWKVOpts
-import Database.EJDB2.Bindings.Types.EJDBHttp
+import Database.EJDB2.Bindings.Types.IWKVOpts as IWKVOpts
+import Database.EJDB2.Bindings.Types.EJDBHttp as EJDBHttp
 
 #include <ejdb2/ejdb2.h>
 
 data EJDBOpts = EJDBOpts { kv :: !IWKVOpts
                          , http :: !EJDBHttp
                          , noWal :: !CBool
-                         , sortBufferSz :: !CUInt
-                         , documentBufferSz :: !CUInt }
+                         , sortBufferSz :: !CSize
+                         , documentBufferSz :: !CSize }
 instance Storable EJDBOpts where
         sizeOf _ = #{size EJDB_OPTS}
         alignment _ = #{alignment EJDB_OPTS}
@@ -34,3 +34,11 @@ instance Storable EJDBOpts where
            #{poke EJDB_OPTS, no_wal} ptr no_wal
            #{poke EJDB_OPTS, sort_buffer_sz} ptr sort_buffer_sz
            #{poke EJDB_OPTS, document_buffer_sz} ptr document_buffer_sz
+
+zero :: EJDBOpts
+zero = EJDBOpts { kv = IWKVOpts.zero
+                        , http = EJDBHttp.zero
+                        , noWal = 0
+                        , sortBufferSz = 0
+                        , documentBufferSz = 0
+                        }

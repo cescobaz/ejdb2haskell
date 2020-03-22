@@ -16,7 +16,7 @@ data IWKVWalOpts = IWKVWalOpts { enabled :: !CBool
                                , checkCRCOnCheckpoint :: !CBool
                                , savepointTimeoutSec :: !CUInt
                                , checkpointTimeoutSec :: !CUInt
-                               , walBufferSz :: !CUIntMax
+                               , walBufferSz :: !CSize
                                , checkpointBufferSz :: !CUChar
                                , walLockInterceptor :: !(FunPtr (CBool -> Ptr () -> IO IWRC))
                                , walLockInterceptorOpaque :: !(Ptr ()) }
