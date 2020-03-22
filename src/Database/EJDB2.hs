@@ -7,6 +7,7 @@ module Database.EJDB2
     , Options(..)
     ) where
 
+import           Control.Exception
 import           Control.Monad
 
 import qualified Data.Aeson                             as Aeson
@@ -80,10 +81,9 @@ getById (Database ejdbPtr) collection id = do
     ejdb <- peek ejdbPtr
     cCollection <- newCString collection
     alloca $ \jblPtr -> do
-        putStrLn "GET BY IDDDDDDD"
         c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
             >>= (checkIWRCFinally (free cCollection))
-        decodeJBLPtr jblPtr
+        finally (decodeJBLPtr jblPtr) (c_jbl_destroy jblPtr)
 
 printer :: IORef BS.ByteString -> JBLJSONPrinter
 printer ref _ 0 (CChar ch) _ _ = do
@@ -111,8 +111,8 @@ decodeJBL :: Aeson.FromJSON a => JBL -> IO (Maybe a)
 decodeJBL jbl = do
     ref <- newIORef BS.empty
     thePrinter <- mkJBLJSONPrinter (printer ref)
-    iwrc <- c_jbl_as_json jbl thePrinter nullPtr 0
-    checkIWRCFinally (freeHaskellFunPtr thePrinter) iwrc
+    c_jbl_as_json jbl thePrinter nullPtr 0
+        >>= checkIWRCFinally (freeHaskellFunPtr thePrinter)
     string <- readIORef ref
     return $ Aeson.decode (BS.reverse string)
 
