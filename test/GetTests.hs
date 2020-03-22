@@ -27,14 +27,13 @@ testReadOnlyDatabaseOpts :: Options
 testReadOnlyDatabaseOpts = minimalOptions "./test/read-only-db"
 
 getByIdAndParseToMap :: TestTree
-getByIdAndParseToMap = withResource (open testReadOnlyDatabaseOpts) (close) $
+getByIdAndParseToMap = withResource (open testReadOnlyDatabaseOpts) close $
     \databaseIO -> testCase "getByIdAndParseToMap" $ do
         database <- databaseIO
         plant <- getById database "plants" 1
-        putStrLn $ show plant
-        plant @?= (Just Plant { name        = Just "pinus"
-                              , isTree      = Just True
-                              , year        = Just 1753
-                              , description = Just "wow 🌲"
-                              })
+        plant @?= Just Plant { name        = Just "pinus"
+                             , isTree      = Just True
+                             , year        = Just 1753
+                             , description = Just "wow 🌲"
+                             }
 
