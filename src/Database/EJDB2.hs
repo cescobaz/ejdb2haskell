@@ -24,7 +24,7 @@ open opts = do
         poke optsPtr opts
         iwrc <- c_ejdb_open optsPtr ejdb
         let result = decodeResult iwrc
-        if (result == Ok)
+        if result == Ok
             then return $ Database ejdb
             else do
                 free ejdb
@@ -34,4 +34,4 @@ close :: Database -> IO ()
 close (Database ejdb) = do
     iwrc <- c_ejdb_close ejdb
     let result = decodeResult iwrc
-    if (result == Ok) then free ejdb else fail $ show result
+    if result == Ok then free ejdb else fail $ show result
