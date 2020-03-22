@@ -3,7 +3,7 @@ module Database.EJDB2 ( Database, open, close ) where
 import           Control.Monad
 
 import           Database.EJDB2.Bindings
-import           Database.EJDB2.Bindings.Types
+import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBHttp    as EJDBHttp
 import           Database.EJDB2.Bindings.Types.EJDBOpts    as EJDBOpts
 import           Database.EJDB2.Bindings.Types.IWKVBase
@@ -14,7 +14,7 @@ import           Foreign.Marshal.Alloc
 import           Foreign.Ptr
 import           Foreign.Storable
 
-newtype Database = Database (Ptr EJDBPtr)
+newtype Database = Database (Ptr EJDB)
 
 open :: EJDBOpts -> IO Database
 open opts = do

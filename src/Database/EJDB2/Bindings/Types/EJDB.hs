@@ -1,8 +1,8 @@
-module Database.EJDB2.Bindings.Types where
+module Database.EJDB2.Bindings.Types.EJDB where
 
 import           Foreign
 
-type EJDBPtr = IntPtr
+type EJDB = Ptr ()
 
 data Error = ErrorOK
            | ErrorInvalidCollectionName

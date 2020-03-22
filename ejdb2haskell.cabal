@@ -10,10 +10,14 @@ library
   exposed-modules:     Database.EJDB2
   other-modules:
       Database.EJDB2.Bindings
-    , Database.EJDB2.Bindings.Types
     , Database.EJDB2.Bindings.Types.C.String
+    , Database.EJDB2.Bindings.Types.EJDB
     , Database.EJDB2.Bindings.Types.EJDBOpts
     , Database.EJDB2.Bindings.Types.EJDBHttp
+    , Database.EJDB2.Bindings.Types.EJDBExec
+    , Database.EJDB2.Bindings.Types.EJDBDoc
+    , Database.EJDB2.Bindings.Types.JQL
+    , Database.EJDB2.Bindings.Types.JBL
     , Database.EJDB2.Bindings.Types.IWKVBase
     , Database.EJDB2.Bindings.Types.IWKVOpts
     , Database.EJDB2.Bindings.Types.IWKVWalOpts
