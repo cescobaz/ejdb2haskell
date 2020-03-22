@@ -11,13 +11,13 @@ import           Foreign.C.String
 import           Foreign.C.Types
 
 import           Database.EJDB2.Bindings.Types.EJDB
-import           Database.EJDB2.Bindings.Types.JQL
+import           Database.EJDB2.Bindings.JQL
 import           Database.EJDB2.Bindings.Types.EJDBDoc
 import           Database.EJDB2.Bindings.Types.IWKVBase
 
 #include <ejdb2/ejdb2.h>
 
-type EJDB_EXEC_VISITOR = FunPtr (Ptr EJDBExec -> Ptr EJDBDoc -> Ptr CIntMax -> IWRC)
+type EJDB_EXEC_VISITOR = FunPtr (Ptr EJDBExec -> Ptr EJDBDoc -> Ptr CIntMax -> IO IWRC)
 type IWXSTR = Ptr ()
 type IWPOOL = Ptr ()
 
@@ -30,6 +30,28 @@ data EJDBExec = EJDBExec { db :: !EJDB
                          , cnt :: !CIntMax
                          , log :: !IWXSTR
                          , pool :: !IWPOOL }
+
+minimal :: EJDB -> JQL -> EJDB_EXEC_VISITOR -> EJDBExec
+minimal db q visitor = EJDBExec { db = db
+                                , q = q
+                                , visitor = visitor
+                                , opaque = nullPtr
+                                , skip = 0
+                                , limit = 0
+                                , cnt = 0
+                                , log = nullPtr
+                                , pool = nullPtr }
+
+zero :: EJDBExec
+zero = EJDBExec { db = nullPtr
+                , q = nullPtr
+                , visitor = nullFunPtr
+                , opaque = nullPtr
+                , skip = 0
+                , limit = 0
+                , cnt = 0
+                , log = nullPtr
+                , pool = nullPtr }
 
 instance Storable EJDBExec where
         sizeOf _ = #{size EJDB_EXEC}
@@ -55,25 +77,3 @@ instance Storable EJDBExec where
            #{poke EJDB_EXEC, cnt} ptr cnt
            #{poke EJDB_EXEC, log} ptr log
            #{poke EJDB_EXEC, pool} ptr pool
-
-minimal :: EJDB -> JQL -> EJDB_EXEC_VISITOR -> EJDBExec
-minimal db q visitor = EJDBExec { db = db
-                                , q = q
-                                , visitor = visitor
-                                , opaque = nullPtr
-                                , skip = 0
-                                , limit = 0
-                                , cnt = 0
-                                , log = nullPtr
-                                , pool = nullPtr }
-
-zero :: EJDBExec
-zero = EJDBExec { db = nullPtr
-                , q = nullPtr
-                , visitor = nullFunPtr
-                , opaque = nullPtr
-                , skip = 0
-                , limit = 0
-                , cnt = 0
-                , log = nullPtr
-                , pool = nullPtr }

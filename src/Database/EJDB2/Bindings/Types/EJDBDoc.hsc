@@ -5,7 +5,7 @@ module Database.EJDB2.Bindings.Types.EJDBDoc where
 import           Foreign
 import           Foreign.C.Types
 
-import           Database.EJDB2.Bindings.Types.JBL
+import           Database.EJDB2.Bindings.JBL
 
 #include <ejdb2/ejdb2.h>
 

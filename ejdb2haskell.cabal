@@ -10,19 +10,21 @@ library
   exposed-modules:     Database.EJDB2
   other-modules:
       Database.EJDB2.Bindings.EJDB2
+    , Database.EJDB2.Bindings.JQL
+    , Database.EJDB2.Bindings.JBL
     , Database.EJDB2.Bindings.Types.C.String
     , Database.EJDB2.Bindings.Types.EJDB
     , Database.EJDB2.Bindings.Types.EJDBOpts
     , Database.EJDB2.Bindings.Types.EJDBHttp
     , Database.EJDB2.Bindings.Types.EJDBExec
     , Database.EJDB2.Bindings.Types.EJDBDoc
-    , Database.EJDB2.Bindings.Types.JQL
     , Database.EJDB2.Bindings.Types.JBL
     , Database.EJDB2.Bindings.Types.IWKVBase
     , Database.EJDB2.Bindings.Types.IWKVOpts
     , Database.EJDB2.Bindings.Types.IWKVWalOpts
   build-depends:       base ^>=4.12.0.0
                      , bytestring ==0.10.10.0
+                     , aeson ==1.4.6.0
   build-tool-depends:  hsc2hs:hsc2hs
   extra-libraries: ejdb2
   hs-source-dirs:      src
@@ -32,6 +34,10 @@ test-suite ejdb2haskell-test
   default-language:    Haskell2010
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
-  main-is:             MyLibTest.hs
+  main-is:             Main.hs
+  other-modules:
+                       GetTests
   build-depends:       base ^>=4.12.0.0
+                     , tasty ==1.2.3
+                     , tasty-hunit ==0.10.0.2
                      , ejdb2

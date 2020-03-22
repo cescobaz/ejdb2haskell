@@ -2,12 +2,14 @@
 
 module Database.EJDB2.Bindings.EJDB2 where
 
+import           Database.EJDB2.Bindings.JBL
 import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBExec
 import           Database.EJDB2.Bindings.Types.EJDBOpts
 import           Database.EJDB2.Bindings.Types.IWKVBase
 
 import           Foreign
+import           Foreign.C.String
 import           Foreign.C.Types
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_init" c_ejdb_init :: IO IWRC
@@ -20,3 +22,6 @@ foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_close" c_ejdb_close
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_exec" c_ejdb_exec
     :: Ptr EJDBExec -> IO IWRC
+
+foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_get" c_ejdb_get
+    :: EJDB -> CString -> CIntMax -> Ptr JBL -> IO IWRC
