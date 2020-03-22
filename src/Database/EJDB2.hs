@@ -2,7 +2,7 @@ module Database.EJDB2 ( Database, open, close ) where
 
 import           Control.Monad
 
-import           Database.EJDB2.Bindings
+import           Database.EJDB2.Bindings.EJDB2
 import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBHttp    as EJDBHttp
 import           Database.EJDB2.Bindings.Types.EJDBOpts    as EJDBOpts
