@@ -1,16 +1,23 @@
-module GetTests (tests) where
+module GetTests ( tests ) where
+
+import qualified Data.HashMap.Strict as Map
 
 import           Database.EJDB2
-import           Database.EJDB2.Bindings.Types.EJDBOpts
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
 tests :: TestTree
-tests = TestGroup "get" []
+tests = testGroup "get" [ getByIdAndParseToMap ]
 
-testReadOnlyDatabaseOpts :: EJDBOpts
-testReadOnlyDatabaseOpts = zero { kv = (kv zero) { path "./test/read-only-db" } }
+testReadOnlyDatabaseOpts :: Options
+testReadOnlyDatabaseOpts = minimalOptions "./test/read-only-db"
 
 getByIdAndParseToMap :: TestTree
-getByIdAndParseToMap = withResource (open testReadOnlyDatabaseOpts) (close) $ 
+getByIdAndParseToMap = withResource (open testReadOnlyDatabaseOpts) (close) $
+    \databaseIO -> testCase "getByIdAndParseToMap" $ do
+        database <- databaseIO
+        plant <- getById database "plants" 1
+        putStrLn $ show plant
+        plant @?= (Just (Map.fromList [ ("name", "pinus") ]))
+

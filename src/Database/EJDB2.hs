@@ -1,4 +1,11 @@
-module Database.EJDB2 ( Database, open, close, getById ) where
+module Database.EJDB2
+    ( Database
+    , open
+    , close
+    , getById
+    , minimalOptions
+    , Options(..)
+    ) where
 
 import           Control.Monad
 
@@ -11,8 +18,9 @@ import           Database.EJDB2.Bindings.JBL
 import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc  as EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec as EJDBExec
-import           Database.EJDB2.Bindings.Types.EJDBOpts
+import           Database.EJDB2.Bindings.Types.EJDBOpts as EJDBOpts
 import           Database.EJDB2.Bindings.Types.IWKVBase
+import           Database.EJDB2.Bindings.Types.IWKVOpts as IWKVOpts
 
 import           Foreign.C.String
 import           Foreign.C.Types
@@ -22,12 +30,26 @@ import           Foreign.Storable
 
 newtype Database = Database (Ptr EJDB)
 
+type Options = EJDBOpts
+
+minimalOptions :: String -> Options
+minimalOptions path = EJDBOpts.zero { kv = IWKVOpts.zero { path = Just path } }
+
 checkIWRC :: IWRC -> IO ()
 checkIWRC iwrc = do
     let result = decodeResult iwrc
     if result == Ok then return () else fail $ show result
 
-open :: EJDBOpts -> IO Database
+checkIWRCFinally :: IO a -> IWRC -> IO a
+checkIWRCFinally computation iwrc = do
+    let result = decodeResult iwrc
+    if result == Ok
+        then computation
+        else do
+            computation
+            fail $ show result
+
+open :: Options -> IO Database
 open opts = do
     c_ejdb_init
     ejdb <- malloc
@@ -64,8 +86,10 @@ getById (Database ejdbPtr) collection id = do
     ejdb <- peek ejdbPtr
     cCollection <- newCString collection
     alloca $ \jblPtr -> do
-        checkIWRC <$> c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
-        jbl <- peek jblPtr
-        jsonCString <- c_jbl_get_str jbl
-        json <- BS.packCString jsonCString
-        return $ Aeson.decodeStrict json
+        (checkIWRCFinally (free cCollection))
+            <$> c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
+        decodeJBLPtr jblPtr
+
+decodeJBLPtr :: Aeson.FromJSON a => Ptr JBL -> IO (Maybe a)
+decodeJBLPtr jblPtr = peek jblPtr >>= c_jbl_get_str >>= BS.packCString
+    >>= return . Aeson.decodeStrict
