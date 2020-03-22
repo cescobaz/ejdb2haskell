@@ -40,5 +40,5 @@ test-suite ejdb2haskell-test
   build-depends:       base ^>=4.12.0.0
                      , tasty ==1.2.3
                      , tasty-hunit ==0.10.0.2
-                     , unordered-containers ==0.2.10.0
+                     , aeson ==1.4.6.0
                      , ejdb2
