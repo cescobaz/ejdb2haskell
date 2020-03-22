@@ -10,7 +10,9 @@ module Database.EJDB2
 import           Control.Monad
 
 import qualified Data.Aeson                             as Aeson
-import qualified Data.ByteString                        as BS
+import qualified Data.ByteString.Lazy                   as BS
+import           Data.Char
+import           Data.IORef
 import           Data.Int
 
 import           Database.EJDB2.Bindings.EJDB2
@@ -37,11 +39,14 @@ minimalOptions path = EJDBOpts.zero { kv = IWKVOpts.zero { path = Just path } }
 
 checkIWRC :: IWRC -> IO ()
 checkIWRC iwrc = do
+    putStrLn "oooh checkIWRC"
+    putStrLn $ show iwrc
     let result = decodeResult iwrc
     if result == Ok then return () else fail $ show result
 
 checkIWRCFinally :: IO a -> IWRC -> IO a
 checkIWRCFinally computation iwrc = do
+    putStrLn "oooh checkIWRCFinally"
     let result = decodeResult iwrc
     if result == Ok
         then computation
@@ -69,27 +74,31 @@ close (Database ejdb) = do
     let result = decodeResult iwrc
     if result == Ok then free ejdb else fail $ show result
 
-visitorPrint :: Ptr EJDBExec -> Ptr EJDBDoc -> Ptr CIntMax -> IO IWRC
-visitorPrint execPtr docPtr _ = do
-    putStrLn "VISITORRRR"
-    return 0
-
--- getById :: (FromJSON a) => Database -> Int62 -> IO a
--- getById (Database ejdbPtr) id = do
---     ejdb <- peek ejdbPtr
---     alloca $ \execPtr -> 
---             let exec = EJDBExec.minimal ejdb jql visitorPrint
---             poke execPtr exec
---             c_ejdb_exec execPtr
 getById :: (Aeson.FromJSON a) => Database -> String -> Int64 -> IO (Maybe a)
 getById (Database ejdbPtr) collection id = do
     ejdb <- peek ejdbPtr
     cCollection <- newCString collection
     alloca $ \jblPtr -> do
-        (checkIWRCFinally (free cCollection))
-            <$> c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
+        putStrLn "GET BY IDDDDDDD"
+        c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
+            >>= (checkIWRCFinally (free cCollection))
         decodeJBLPtr jblPtr
 
+printer :: IORef BS.ByteString -> JBLJSONPrinter
+printer ref d size (CChar ch) count op = do
+    modifyIORef' ref $ \string -> BS.cons word string
+    return 0
+  where
+    word = fromIntegral ch
+
+decodeJBL :: Aeson.FromJSON a => JBL -> IO (Maybe a)
+decodeJBL jbl = do
+    ref <- newIORef BS.empty
+    thePrinter <- mkJBLJSONPrinter (printer ref)
+    iwrc <- c_jbl_as_json jbl thePrinter nullPtr 0
+    checkIWRCFinally (freeHaskellFunPtr thePrinter) iwrc
+    string <- readIORef ref
+    return $ Aeson.decode (BS.reverse string)
+
 decodeJBLPtr :: Aeson.FromJSON a => Ptr JBL -> IO (Maybe a)
-decodeJBLPtr jblPtr = peek jblPtr >>= c_jbl_get_str >>= BS.packCString
-    >>= return . Aeson.decodeStrict
+decodeJBLPtr jblPtr = peek jblPtr >>= decodeJBL
