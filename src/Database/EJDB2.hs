@@ -27,6 +27,7 @@ import           Database.EJDB2.Bindings.Types.IWKVOpts as IWKVOpts
 import           Foreign.C.String
 import           Foreign.C.Types
 import           Foreign.Marshal.Alloc
+import           Foreign.Marshal.Array
 import           Foreign.Ptr
 import           Foreign.Storable
 
@@ -85,11 +86,26 @@ getById (Database ejdbPtr) collection id = do
         decodeJBLPtr jblPtr
 
 printer :: IORef BS.ByteString -> JBLJSONPrinter
-printer ref d size (CChar ch) count op = do
+printer ref _ 0 (CChar ch) _ _ = do
     modifyIORef' ref $ \string -> BS.cons word string
     return 0
   where
     word = fromIntegral ch
+printer ref buffer size _ _ _
+    | size > 0 = do
+        array <- peekArray (fromIntegral size) buffer
+        printerArray ref array
+    | otherwise = do
+        array <- peekArray0 (CChar 0) buffer
+        printerArray ref array
+
+printerArray :: IORef BS.ByteString -> [CChar] -> IO IWRC
+printerArray ref array = do
+    modifyIORef' ref $ \string ->
+        foldl (\result (CChar ch) -> BS.cons (fromIntegral ch) result)
+              string
+              array
+    return 0
 
 decodeJBL :: Aeson.FromJSON a => JBL -> IO (Maybe a)
 decodeJBL jbl = do
