@@ -14,8 +14,6 @@ import           Foreign.Marshal.Alloc
 import           Foreign.Ptr
 import           Foreign.Storable
 
-newtype Database = Database (Ptr EJDBPtr)
-
 zeroEJDBOpts :: EJDBOpts
 zeroEJDBOpts =
     EJDBOpts { kv = IWKVOpts { path = nullPtr
@@ -23,30 +21,15 @@ zeroEJDBOpts =
                              , fmtVersion = 0
                              , oflags = 0
                              , fileLockFailFast = 0
-                             , wal =
-                                   IWKVWalOpts { IWKVWalOpts.enabled = 0
-                                               , checkCRCOnCheckpoint = 0
-                                               , savepointTimeoutSec = 0
-                                               , checkpointTimeoutSec = 0
-                                               , walBufferSz = 0
-                                               , checkpointBufferSz = 0
-                                               , walLockInterceptor = nullFunPtr
-                                               , walLockInterceptorOpaque =
-                                                     nullPtr
-                                               }
+                             , wal = IWKVWalOpts.zero
                              }
-             , http = EJDBHttp { EJDBHttp.enabled = 0
-                               , port = 0
-                               , bind = nullPtr
-                               , accessToken = (nullPtr, 0)
-                               , blocking = 0
-                               , readAnon = 0
-                               , maxBodySize = 0
-                               }
+             , http = EJDBHttp.zero
              , noWal = 0
              , sortBufferSz = 0
              , documentBufferSz = 0
              }
+
+newtype Database = Database (Ptr EJDBPtr)
 
 open :: EJDBOpts -> IO Database
 open opts = do

@@ -42,3 +42,14 @@ instance Storable IWKVWalOpts where
           #{poke IWKV_WAL_OPTS, checkpoint_buffer_sz} ptr checkpoint_buffer_sz
           #{poke IWKV_WAL_OPTS, wal_lock_interceptor} ptr wal_lock_interceptor
           #{poke IWKV_WAL_OPTS, wal_lock_interceptor_opaque} ptr wal_lock_interceptor_opaque
+
+zero :: IWKVWalOpts
+zero = IWKVWalOpts { enabled = 0
+                   , checkCRCOnCheckpoint = 0
+                   , savepointTimeoutSec = 0
+                   , checkpointTimeoutSec = 0
+                   , walBufferSz = 0
+                   , checkpointBufferSz = 0
+                   , walLockInterceptor = nullFunPtr
+                   , walLockInterceptorOpaque = nullPtr
+                   }
