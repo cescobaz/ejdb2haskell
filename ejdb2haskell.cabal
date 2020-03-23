@@ -10,19 +10,17 @@ library
   exposed-modules:     Database.EJDB2
                      , Database.EJDB2.Query
   other-modules:
-      Database.EJDB2.IWKV
-    , Database.EJDB2.JBL
+      Database.EJDB2.JBL
     , Database.EJDB2.Bindings.EJDB2
     , Database.EJDB2.Bindings.JQL
     , Database.EJDB2.Bindings.JBL
+    , Database.EJDB2.Bindings.IW
     , Database.EJDB2.Bindings.Types.C.String
     , Database.EJDB2.Bindings.Types.EJDB
     , Database.EJDB2.Bindings.Types.EJDBOpts
     , Database.EJDB2.Bindings.Types.EJDBHttp
     , Database.EJDB2.Bindings.Types.EJDBExec
     , Database.EJDB2.Bindings.Types.EJDBDoc
-    , Database.EJDB2.Bindings.Types.JBL
-    , Database.EJDB2.Bindings.Types.IWKVBase
     , Database.EJDB2.Bindings.Types.IWKVOpts
     , Database.EJDB2.Bindings.Types.IWKVWalOpts
   build-depends:       base ^>=4.12.0.0

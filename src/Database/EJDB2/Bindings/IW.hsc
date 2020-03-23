@@ -1,14 +1,28 @@
 {-# LANGUAGE CPP #-}
-module Database.EJDB2.Bindings.Types.IWKVBase where
+module Database.EJDB2.Bindings.IW where
 
 import           Foreign
 import           Foreign.C.Types
 
 #include <ejdb2/ejdb2.h>
 
-type IWRC = CUIntMax
+type RC = CUIntMax
 
-data IWResult =
+checkRC :: RC -> IO ()
+checkRC rc = do
+    let result = decodeRC rc
+    if result == Ok then return () else fail $ show result
+
+checkRCFinally :: IO a -> RC -> IO a
+checkRCFinally computation rc = do
+    let result = decodeRC rc
+    if result == Ok
+        then computation
+        else do
+            computation
+            fail $ show result
+
+data Result =
       Ok                          -- No error.
     | ErrorFail                   -- Unspecified error.
     | ErrorErrno                  -- Error with expected errno status set.
@@ -43,8 +57,8 @@ data IWResult =
     | ErrorBackupInProgress          -- Backup operation in progress. (IWKV_ERROR_BACKUP_IN_PROGRESS) */
     deriving ( Eq, Show )
 
-decodeResult :: IWRC -> IWResult
-decodeResult iwrc = case iwrc of
+decodeRC :: RC -> Result
+decodeRC rc = case rc of
   #{const IW_OK}   ->                    Ok
   #{const IW_ERROR_FAIL}   ->            ErrorFail
   #{const IW_ERROR_ERRNO}   ->           ErrorErrno
@@ -77,4 +91,4 @@ decodeResult iwrc = case iwrc of
   #{const IWKV_ERROR_VALUE_CANNOT_BE_INCREMENTED}  ->  ErrorValueCannotBeIncremented
   #{const IWKV_ERROR_WAL_MODE_REQUIRED}            ->  ErrorWalModeRequired
   #{const IWKV_ERROR_BACKUP_IN_PROGRESS}           ->  ErrorBackupInProgress
-  _                           ->       error $ "decodeError " ++ show iwrc
+  _                                                ->  error $ "Database.EJDB2.Bindings.IW.decodeRC " ++ show rc

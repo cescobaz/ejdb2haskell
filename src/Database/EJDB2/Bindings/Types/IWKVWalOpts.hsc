@@ -18,7 +18,7 @@ data IWKVWalOpts = IWKVWalOpts { enabled :: !CBool
                                , checkpointTimeoutSec :: !CUInt
                                , walBufferSz :: !CSize
                                , checkpointBufferSz :: !CUChar
-                               , walLockInterceptor :: !(FunPtr (CBool -> Ptr () -> IO IWRC))
+                               , walLockInterceptor :: !(FunPtr (CBool -> Ptr () -> IO RC))
                                , walLockInterceptorOpaque :: !(Ptr ()) }
 instance Storable IWKVWalOpts where
         sizeOf _ = #{size IWKV_WAL_OPTS}

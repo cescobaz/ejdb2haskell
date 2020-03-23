@@ -51,7 +51,7 @@ getByIdNotFoundTest databaseIO = testCase "getById - not found" $ do
 getByQueryTest :: IO Database -> TestTree
 getByQueryTest databaseIO = testCase "getByQuery" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[isTree=:tree]"
+    query <- Query.fromString "@plants/[isTree=:tree] | asc /name"
     Query.setBool False "tree" query
     plants <- getList database query
     plants
