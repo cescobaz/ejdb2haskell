@@ -17,7 +17,9 @@ import           Database.EJDB2.Bindings.Types.IWKVBase
 
 #include <ejdb2/ejdb2.h>
 
-type EJDB_EXEC_VISITOR = FunPtr (Ptr EJDBExec -> Ptr EJDBDoc -> Ptr CIntMax -> IO IWRC)
+type EJDBExecVisitor = Ptr EJDBExec -> Ptr EJDBDoc -> Ptr CIntMax -> IO IWRC
+type EJDB_EXEC_VISITOR = FunPtr EJDBExecVisitor
+
 type IWXSTR = Ptr ()
 type IWPOOL = Ptr ()
 

@@ -8,6 +8,7 @@ extra-source-files:  CHANGELOG.md
 
 library
   exposed-modules:     Database.EJDB2
+                     , Database.EJDB2.Query
   other-modules:
       Database.EJDB2.IWKV
     , Database.EJDB2.JBL
