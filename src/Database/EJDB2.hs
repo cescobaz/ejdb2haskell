@@ -62,6 +62,9 @@ getById (Database ejdbPtr) collection id = do
     ejdb <- peek ejdbPtr
     cCollection <- newCString collection
     alloca $ \jblPtr -> do
-        c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
-            >>= checkIWRCFinally (free cCollection)
-        finally (decodeJBLPtr jblPtr) (c_jbl_destroy jblPtr)
+        iwrc <- c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
+        let result = decodeResult iwrc
+        case result of
+            Ok -> finally (decodeJBLPtr jblPtr) (c_jbl_destroy jblPtr)
+            ErrorNotfound -> return Nothing
+            _ -> free cCollection >> (fail $ show result)

@@ -29,6 +29,18 @@ data IWResult =
     | ErrorInvalidArgs            -- Invalid function arguments.
     | ErrorOverflow               -- Overflow.
     | ErrorInvalidValue           -- Invalid value.
+    | ErrorNotfound                  -- Key not found (IWKV_ERROR_NOTFOUND) */
+    | ErrorKeyExists                 -- Key already exists (IWKV_ERROR_KEY_EXISTS) */
+    | ErrorMaxkvsz                   -- Size of Key+value must be not greater than 0xfffffff bytes (IWKV_ERROR_MAXKVSZ) */
+    | ErrorCorrupted                 -- Database file invalid or corrupted (IWKV_ERROR_CORRUPTED) */
+    | ErrorDupValueSize              -- Value size is not compatible for insertion into sorted values array (IWKV_ERROR_DUP_VALUE_SIZE) */
+    | ErrorKeyNumValueSize           -- Given key is not compatible to storage as number (IWKV_ERROR_KEY_NUM_VALUE_SIZE)  */
+    | ErrorIncompatibleDbMode        -- Incorpatible database open mode (IWKV_ERROR_INCOMPATIBLE_DB_MODE) */
+    | ErrorIncompatibleDbFormat      -- Incompatible database format version, please migrate database data (IWKV_ERROR_INCOMPATIBLE_DB_FORMAT) */
+    | ErrorCorruptedWalFile          -- Corrupted WAL file (IWKV_ERROR_CORRUPTED_WAL_FILE) */
+    | ErrorValueCannotBeIncremented  -- Stored value cannot be incremented/descremented (IWKV_ERROR_VALUE_CANNOT_BE_INCREMENTED) */
+    | ErrorWalModeRequired           -- Operation requires WAL enabled database. (IWKV_ERROR_WAL_MODE_REQUIRED) */
+    | ErrorBackupInProgress          -- Backup operation in progress. (IWKV_ERROR_BACKUP_IN_PROGRESS) */
     deriving ( Eq, Show )
 
 decodeResult :: IWRC -> IWResult
@@ -53,4 +65,16 @@ decodeResult iwrc = case iwrc of
   #{const IW_ERROR_INVALID_ARGS}   ->    ErrorInvalidArgs
   #{const IW_ERROR_OVERFLOW}   ->        ErrorOverflow
   #{const IW_ERROR_INVALID_VALUE}   ->   ErrorInvalidValue
+  #{const IWKV_ERROR_NOTFOUND}                     ->  ErrorNotfound
+  #{const IWKV_ERROR_KEY_EXISTS}                   ->  ErrorKeyExists
+  #{const IWKV_ERROR_MAXKVSZ}                      ->  ErrorMaxkvsz
+  #{const IWKV_ERROR_CORRUPTED}                    ->  ErrorCorrupted
+  #{const IWKV_ERROR_DUP_VALUE_SIZE}               ->  ErrorDupValueSize
+  #{const IWKV_ERROR_KEY_NUM_VALUE_SIZE}           ->  ErrorKeyNumValueSize
+  #{const IWKV_ERROR_INCOMPATIBLE_DB_MODE}         ->  ErrorIncompatibleDbMode
+  #{const IWKV_ERROR_INCOMPATIBLE_DB_FORMAT}       ->  ErrorIncompatibleDbFormat
+  #{const IWKV_ERROR_CORRUPTED_WAL_FILE}           ->  ErrorCorruptedWalFile
+  #{const IWKV_ERROR_VALUE_CANNOT_BE_INCREMENTED}  ->  ErrorValueCannotBeIncremented
+  #{const IWKV_ERROR_WAL_MODE_REQUIRED}            ->  ErrorWalModeRequired
+  #{const IWKV_ERROR_BACKUP_IN_PROGRESS}           ->  ErrorBackupInProgress
   _                           ->       error $ "decodeError " ++ show iwrc
