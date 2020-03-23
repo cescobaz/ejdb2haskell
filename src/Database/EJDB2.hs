@@ -61,10 +61,12 @@ getById :: (Aeson.FromJSON a) => Database -> String -> Int64 -> IO (Maybe a)
 getById (Database ejdbPtr) collection id = do
     ejdb <- peek ejdbPtr
     cCollection <- newCString collection
-    alloca $ \jblPtr -> do
-        iwrc <- c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
-        let result = decodeResult iwrc
-        case result of
-            Ok -> finally (decodeJBLPtr jblPtr) (c_jbl_destroy jblPtr)
-            ErrorNotfound -> return Nothing
-            _ -> free cCollection >> (fail $ show result)
+    alloca $ \jblPtr ->
+        finally (do
+                     result <- c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
+                         >>= return . decodeResult
+                     case result of
+                         Ok -> decodeJBLPtr jblPtr
+                         ErrorNotfound -> return Nothing
+                         _ -> fail $ show result)
+                (free cCollection >> c_jbl_destroy jblPtr)
