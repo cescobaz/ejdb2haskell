@@ -7,6 +7,10 @@ module Database.EJDB2
     , getList'
     , minimalOptions
     , Options(..)
+    , OpenFlags
+    , readonlyOpenFlags
+    , truncateOpenFlags
+    , noTrimOnCloseOpenFlags
     ) where
 
 import           Control.Exception
@@ -23,6 +27,9 @@ import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc  as EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec as EJDBExec
 import           Database.EJDB2.Bindings.Types.EJDBOpts as EJDBOpts
+import           Database.EJDB2.Bindings.Types.IWKVOpts
+                 ( OpenFlags, noTrimOnCloseOpenFlags, readonlyOpenFlags
+                 , truncateOpenFlags )
 import           Database.EJDB2.Bindings.Types.IWKVOpts as IWKVOpts
 import           Database.EJDB2.JBL
 import           Database.EJDB2.Query
@@ -37,8 +44,10 @@ newtype Database = Database (Ptr EJDB)
 
 type Options = EJDBOpts
 
-minimalOptions :: String -> Options
-minimalOptions path = EJDBOpts.zero { kv = IWKVOpts.zero { path = Just path } }
+minimalOptions :: String -> [OpenFlags] -> Options
+minimalOptions path openFlags =
+    EJDBOpts.zero { kv = IWKVOpts.zero { path = Just path, oflags = openFlags }
+                  }
 
 open :: Options -> IO Database
 open opts = do

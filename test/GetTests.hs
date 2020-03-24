@@ -34,7 +34,8 @@ tests = withResource (open testReadOnlyDatabaseOpts) close $ \databaseIO ->
               ]
 
 testReadOnlyDatabaseOpts :: Options
-testReadOnlyDatabaseOpts = minimalOptions "./test/read-only-db"
+testReadOnlyDatabaseOpts =
+    minimalOptions "./test/read-only-db" [ readonlyOpenFlags ]
 
 getByIdTest :: IO Database -> TestTree
 getByIdTest databaseIO = testCase "getById" $ do
