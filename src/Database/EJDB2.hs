@@ -67,7 +67,7 @@ getById (Database ejdbPtr) collection id = do
                      result <- decodeRC
                          <$> c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
                      case result of
-                         Ok -> decodePtr jblPtr
+                         Ok -> peek jblPtr >>= decode
                          ErrorNotfound -> return Nothing
                          _ -> fail $ show result)
                 (free cCollection >> c_jbl_destroy jblPtr)

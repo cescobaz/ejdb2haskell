@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Database.EJDB2.JBL ( decode, decodePtr, decode', decodePtr' ) where
+module Database.EJDB2.JBL ( decode, decode' ) where
 
 import qualified Data.Aeson                  as Aeson
 import qualified Data.ByteString.Lazy        as BS
@@ -18,14 +18,8 @@ import           Foreign.Marshal.Array
 decode :: Aeson.FromJSON a => JBL -> IO (Maybe a)
 decode jbl = Aeson.decode <$> decodeToByteString jbl
 
-decodePtr :: Aeson.FromJSON a => Ptr JBL -> IO (Maybe a)
-decodePtr jblPtr = peek jblPtr >>= decode
-
 decode' :: Aeson.FromJSON a => JBL -> Int64 -> IO (Maybe a)
 decode' jbl id = parse . setId id <$> decode jbl
-
-decodePtr' :: Aeson.FromJSON a => Ptr JBL -> Int64 -> IO (Maybe a)
-decodePtr' jblPtr id = peek jblPtr >>= flip decode' id
 
 decodeToByteString :: JBL -> IO BS.ByteString
 decodeToByteString jbl = do
