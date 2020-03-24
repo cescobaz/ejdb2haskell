@@ -2,7 +2,6 @@
 
 module Database.EJDB2.Bindings.Types.EJDBExec where
 
-import           Data.ByteString.Char8
 
 import           Prelude           hiding ( log )
 
@@ -13,7 +12,7 @@ import           Foreign.C.Types
 import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.JQL
 import           Database.EJDB2.Bindings.Types.EJDBDoc
-import           Database.EJDB2.Bindings.Types.IWKVBase
+import           Database.EJDB2.Bindings.IW
 
 #include <ejdb2/ejdb2.h>
 

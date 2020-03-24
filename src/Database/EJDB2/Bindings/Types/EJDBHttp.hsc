@@ -2,8 +2,6 @@
 
 module Database.EJDB2.Bindings.Types.EJDBHttp where
 
-import           Data.ByteString.Char8
-
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types

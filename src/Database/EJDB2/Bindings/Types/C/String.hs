@@ -2,8 +2,6 @@ module Database.EJDB2.Bindings.Types.C.String where
 
 import           Control.Applicative
 
-import           Data.ByteString.Char8
-
 import           Foreign
 import           Foreign.C.String
 

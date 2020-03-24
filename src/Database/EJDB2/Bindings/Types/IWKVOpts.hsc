@@ -2,7 +2,6 @@
 
 module Database.EJDB2.Bindings.Types.IWKVOpts where
 
-import           Data.ByteString.Char8
 
 import           Foreign
 import           Foreign.C.String

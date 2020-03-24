@@ -2,13 +2,12 @@
 
 module Database.EJDB2.Bindings.Types.IWKVWalOpts where
 
-import           Data.ByteString.Char8
 
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import Database.EJDB2.Bindings.Types.IWKVBase
+import Database.EJDB2.Bindings.IW
 
 #include <ejdb2/ejdb2.h>
 
