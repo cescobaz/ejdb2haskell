@@ -54,12 +54,16 @@ getByIdNotFoundTest databaseIO = testCase "getById - not found" $ do
     plant <- getById database "plants" 42
     plant @?= (Nothing :: Maybe Plant)
 
+getListTestQuery :: IO Query.Query
+getListTestQuery = do
+    query <- Query.fromString "@plants/[isTree=:tree] | asc /name"
+    Query.setBool False "tree" query
+    return query
+
 getListTest :: IO Database -> TestTree
 getListTest databaseIO = testCase "getList" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[isTree=:tree] | asc /name"
-    Query.setBool False "tree" query
-    plants <- getList database query
+    plants <- getListTestQuery >>= getList database
     plants @?= [ ( 2
                      , Just Plant { id          = Nothing
                                   , name        = Just "gentiana brentae"
@@ -90,9 +94,7 @@ getListTest databaseIO = testCase "getList" $ do
 getListTest' :: IO Database -> TestTree
 getListTest' databaseIO = testCase "getList'" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[isTree=:tree] | asc /name"
-    Query.setBool False "tree" query
-    plants <- getList' database query
+    plants <- getListTestQuery >>= getList' database
     plants
         @?= [ Just Plant { id          = Just 2
                          , name        = Just "gentiana brentae"
