@@ -4,6 +4,7 @@ module Database.EJDB2
     , close
     , getById
     , getList
+    , getList'
     , minimalOptions
     , Options(..)
     ) where
@@ -71,19 +72,32 @@ getById (Database ejdbPtr) collection id = do
                          _ -> fail $ show result)
                 (free cCollection >> c_jbl_destroy jblPtr)
 
-visitor :: Aeson.FromJSON a => IORef [Maybe a] -> EJDBExecVisitor
+getList :: Aeson.FromJSON a => Database -> Query -> IO [(Int64, Maybe a)]
+getList = exec Database.EJDB2.visitor
+
+visitor :: Aeson.FromJSON a => IORef [(Int64, Maybe a)] -> EJDBExecVisitor
 visitor ref _ docPtr _ = do
-    jbl <- raw <$> peek docPtr
-    value <- decode jbl
+    doc <- peek docPtr
+    value <- decode (raw doc)
+    modifyIORef' ref $ \list -> (fromIntegral $ EJDBDoc.id doc, value) : list
+    return 0
+
+getList' :: Aeson.FromJSON a => Database -> Query -> IO [Maybe a]
+getList' = exec Database.EJDB2.visitor'
+
+visitor' :: Aeson.FromJSON a => IORef [Maybe a] -> EJDBExecVisitor
+visitor' ref _ docPtr _ = do
+    doc <- peek docPtr
+    value <- decode' (raw doc) (fromIntegral $ EJDBDoc.id doc)
     modifyIORef' ref $ \list -> value : list
     return 0
 
-getList :: Aeson.FromJSON a => Database -> Query -> IO [Maybe a]
-getList (Database ejdbPtr) query = do
+exec :: (IORef [a] -> EJDBExecVisitor) -> Database -> Query -> IO [a]
+exec visitor (Database ejdbPtr) query = do
     ejdb <- peek ejdbPtr
     jql <- peek query
     ref <- newIORef []
-    visitor <- mkEJDBExecVisitor (Database.EJDB2.visitor ref)
+    visitor <- mkEJDBExecVisitor (visitor ref)
     let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
     alloca $ \execPtr -> do
         poke execPtr exec

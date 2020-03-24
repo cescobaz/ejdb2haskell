@@ -1,8 +1,12 @@
-module Database.EJDB2.JBL ( decode, decodePtr ) where
+{-# LANGUAGE OverloadedStrings #-}
+
+module Database.EJDB2.JBL ( decode, decodePtr, decode', decodePtr' ) where
 
 import qualified Data.Aeson                  as Aeson
 import qualified Data.ByteString.Lazy        as BS
+import qualified Data.HashMap.Strict         as Map
 import           Data.IORef
+import           Data.Int
 
 import qualified Database.EJDB2.Bindings.IW  as IW
 import           Database.EJDB2.Bindings.JBL
@@ -12,16 +16,36 @@ import           Foreign.C.Types
 import           Foreign.Marshal.Array
 
 decode :: Aeson.FromJSON a => JBL -> IO (Maybe a)
-decode jbl = do
+decode jbl = Aeson.decode <$> decodeToByteString jbl
+
+decodePtr :: Aeson.FromJSON a => Ptr JBL -> IO (Maybe a)
+decodePtr jblPtr = peek jblPtr >>= decode
+
+decode' :: Aeson.FromJSON a => JBL -> Int64 -> IO (Maybe a)
+decode' jbl id = parse . setId id <$> decode jbl
+
+decodePtr' :: Aeson.FromJSON a => Ptr JBL -> Int64 -> IO (Maybe a)
+decodePtr' jblPtr id = peek jblPtr >>= flip decode' id
+
+decodeToByteString :: JBL -> IO BS.ByteString
+decodeToByteString jbl = do
     ref <- newIORef BS.empty
     thePrinter <- mkJBLJSONPrinter (printer ref)
     c_jbl_as_json jbl thePrinter nullPtr 0
         >>= IW.checkRCFinally (freeHaskellFunPtr thePrinter)
-    string <- readIORef ref
-    return $ Aeson.decode (BS.reverse string)
+    BS.reverse <$> readIORef ref
 
-decodePtr :: Aeson.FromJSON a => Ptr JBL -> IO (Maybe a)
-decodePtr jblPtr = peek jblPtr >>= decode
+parse :: Aeson.FromJSON a => Maybe Aeson.Value -> Maybe a
+parse Nothing = Nothing
+parse (Just value) = case Aeson.fromJSON value of
+    Aeson.Success v -> Just v
+    Aeson.Error _ -> Nothing
+
+setId :: Int64 -> Maybe Aeson.Value -> Maybe Aeson.Value
+setId id (Just (Aeson.Object map)) =
+    Just (Aeson.Object (Map.insert "id" (Aeson.Number $ fromIntegral id) map))
+setId _ Nothing = Nothing
+setId _ value = value
 
 printer :: IORef BS.ByteString -> JBLJSONPrinter
 printer ref _ 0 (CChar ch) _ _ = do
