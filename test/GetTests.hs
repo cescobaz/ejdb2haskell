@@ -29,6 +29,7 @@ tests = withResource (open testReadOnlyDatabaseOpts) close $ \databaseIO ->
     testGroup "get"
               [ getByIdTest databaseIO
               , getByIdNotFoundTest databaseIO
+              , getListTest databaseIO
               , getListTest' databaseIO
               ]
 
