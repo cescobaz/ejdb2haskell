@@ -125,7 +125,6 @@ exec visitor (Database ejdbPtr) query = do
 putNew :: Aeson.ToJSON a => Database -> String -> a -> IO Int64
 putNew (Database ejdbPtr) collection obj = do
     ejdb <- peek ejdbPtr
-    doc <- encode obj
-    withCString collection $ \cCollection -> alloca $ \idPtr ->
-        c_ejdb_put_new ejdb cCollection doc idPtr >>= checkRC >> peek idPtr
-        >>= \(CIntMax int) -> return int
+    encode obj $ \doc -> withCString collection $ \cCollection ->
+        alloca $ \idPtr -> c_ejdb_put_new ejdb cCollection doc idPtr >>= checkRC
+        >> peek idPtr >>= \(CIntMax int) -> return int

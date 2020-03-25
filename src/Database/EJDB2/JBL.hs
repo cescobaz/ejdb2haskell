@@ -66,10 +66,11 @@ printerArray ref array = do
               array
     return 0
 
-encode :: Aeson.ToJSON a => a -> IO JBL
-encode obj = do
+encode :: Aeson.ToJSON a => a -> (JBL -> IO b) -> IO b
+encode obj f = do
     let byteString = BSL.toStrict $ Aeson.encode obj
     BS.useAsCString byteString $ \string -> alloca $ \jblPtr ->
-        finally (c_jbl_from_json jblPtr string >>= IW.checkRC >> peek jblPtr)
+        finally (c_jbl_from_json jblPtr string >>= IW.checkRC >> peek jblPtr
+                 >>= f)
                 (c_jbl_destroy jblPtr)
 
