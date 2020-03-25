@@ -110,5 +110,8 @@ exec visitor (Database ejdbPtr) query = do
     let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
     alloca $ \execPtr -> do
         poke execPtr exec
-        c_ejdb_exec execPtr >>= checkRCFinally (freeHaskellFunPtr visitor)
+        c_ejdb_exec execPtr >>= (\result -> do
+                                     putStrLn $ show result
+                                     return result)
+            >>= checkRCFinally (freeHaskellFunPtr visitor)
         reverse <$> readIORef ref

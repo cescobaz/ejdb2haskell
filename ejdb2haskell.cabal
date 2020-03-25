@@ -39,6 +39,7 @@ test-suite ejdb2haskell-test
   main-is:             Main.hs
   other-modules:
                        GetTests
+                       Asserts
   build-depends:       base ^>=4.12.0.0
                      , tasty ==1.2.3
                      , tasty-hunit ==0.10.0.2

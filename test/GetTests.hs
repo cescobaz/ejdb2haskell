@@ -2,7 +2,13 @@
 
 module GetTests ( tests ) where
 
-import           Data.Aeson           ( FromJSON )
+import           Asserts
+
+import           Control.Exception
+import           Control.Monad
+
+import           Data.Aeson           ( FromJSON, Value )
+import           Data.Int
 
 import           Database.EJDB2
 import qualified Database.EJDB2.Query as Query
@@ -31,6 +37,8 @@ tests = withResource (open testReadOnlyDatabaseOpts) close $ \databaseIO ->
               , getByIdNotFoundTest databaseIO
               , getListTest databaseIO
               , getListTest' databaseIO
+              , getByIdFromNotExistingCollectionTest databaseIO
+              , getListFromNotExistingCollectionTest databaseIO
               ]
 
 testReadOnlyDatabaseOpts :: Options
@@ -115,3 +123,20 @@ getListTest' databaseIO = testCase "getList'" $ do
                          , description = Just "very common flower in Italy 🍕"
                          }
             ]
+
+getByIdFromNotExistingCollectionTest :: IO Database -> TestTree
+getByIdFromNotExistingCollectionTest databaseIO =
+    testCase "getByIdFromNotExistingCollection" $ do
+        database <- databaseIO
+        assertException (userError "ErrorNotExists")
+                        (getById database "noexisting" 1 :: IO (Maybe Value))
+
+-- on ejdb_exec there is no error if collection doesn't exists
+-- https://github.com/Softmotions/ejdb/blob/40fb43a30e410b4f1bce68f79f397ce44c272c78/src/ejdb2.c#L821
+getListFromNotExistingCollectionTest :: IO Database -> TestTree
+getListFromNotExistingCollectionTest databaseIO = testCase "getList" $ do
+    database <- databaseIO
+    query <- Query.fromString "@noexisting/[isTree=:tree] | asc /name"
+    Query.setBool False "tree" query
+    list <- getList database query :: IO ([(Int64, Maybe Value)])
+    list @?= []
