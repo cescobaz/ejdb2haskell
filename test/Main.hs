@@ -4,6 +4,8 @@ import           Database.EJDB2
 
 import           GetTests
 
+import           PutTests
+
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
@@ -11,4 +13,4 @@ main :: IO ()
 main = defaultMain Main.tests
 
 tests :: TestTree
-tests = testGroup "ejdb2" [ GetTests.tests ]
+tests = testGroup "ejdb2" [ GetTests.tests, PutTests.tests ]

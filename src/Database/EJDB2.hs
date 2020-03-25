@@ -1,17 +1,18 @@
 module Database.EJDB2
     ( Database
+    , Options(..)
+    , OpenFlags
+    , readonlyOpenFlags
+    , truncateOpenFlags
+    , noTrimOnCloseOpenFlags
+    , minimalOptions
     , open
     , close
     , getById
     , getCount
     , getList
     , getList'
-    , minimalOptions
-    , Options(..)
-    , OpenFlags
-    , readonlyOpenFlags
-    , truncateOpenFlags
-    , noTrimOnCloseOpenFlags
+    , putNew
     ) where
 
 import           Control.Exception
@@ -118,8 +119,13 @@ exec visitor (Database ejdbPtr) query = do
     let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
     alloca $ \execPtr -> do
         poke execPtr exec
-        c_ejdb_exec execPtr >>= (\result -> do
-                                     putStrLn $ show result
-                                     return result)
-            >>= checkRCFinally (freeHaskellFunPtr visitor)
+        c_ejdb_exec execPtr >>= checkRCFinally (freeHaskellFunPtr visitor)
         reverse <$> readIORef ref
+
+putNew :: Aeson.ToJSON a => Database -> String -> a -> IO Int64
+putNew (Database ejdbPtr) collection obj = do
+    ejdb <- peek ejdbPtr
+    doc <- encode obj
+    withCString collection $ \cCollection -> alloca $ \idPtr ->
+        c_ejdb_put_new ejdb cCollection doc idPtr >>= checkRC >> peek idPtr
+        >>= \(CIntMax int) -> return int
