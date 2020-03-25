@@ -3,6 +3,7 @@ module Database.EJDB2
     , open
     , close
     , getById
+    , getCount
     , getList
     , getList'
     , minimalOptions
@@ -80,6 +81,13 @@ getById (Database ejdbPtr) collection id = do
                          ErrorNotfound -> return Nothing
                          _ -> fail $ show result)
                 (free cCollection >> c_jbl_destroy jblPtr)
+
+getCount :: Database -> Query -> IO Int64
+getCount (Database ejdbPtr) query = do
+    ejdb <- peek ejdbPtr
+    jql <- peek query
+    alloca $ \countPtr -> c_ejdb_count ejdb jql countPtr 0 >>= checkRC
+        >> peek countPtr >>= \(CIntMax int) -> return int
 
 getList :: Aeson.FromJSON a => Database -> Query -> IO [(Int64, Maybe a)]
 getList = exec Database.EJDB2.visitor

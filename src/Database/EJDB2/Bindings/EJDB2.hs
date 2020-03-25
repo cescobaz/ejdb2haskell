@@ -2,12 +2,13 @@
 
 module Database.EJDB2.Bindings.EJDB2 where
 
+import           Database.EJDB2.Bindings.IW
 import           Database.EJDB2.Bindings.JBL
+import           Database.EJDB2.Bindings.JQL
 import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec
 import           Database.EJDB2.Bindings.Types.EJDBOpts
-import           Database.EJDB2.Bindings.IW
 
 import           Foreign
 import           Foreign.C.String
@@ -29,3 +30,6 @@ foreign import ccall "ejdb2/ejdb2.h ejdb_exec" c_ejdb_exec
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_get" c_ejdb_get
     :: EJDB -> CString -> CIntMax -> Ptr JBL -> IO RC
+
+foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_count" c_ejdb_count
+    :: EJDB -> JQL -> Ptr CIntMax -> CIntMax -> IO RC
