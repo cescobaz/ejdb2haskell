@@ -7,28 +7,18 @@ import           Asserts
 import           Control.Exception
 import           Control.Monad
 
-import           Data.Aeson           ( FromJSON, Value )
+import           Data.Aeson           ( Value )
 import           Data.Int
 
 import           Database.EJDB2
 import qualified Database.EJDB2.Query as Query
 
-import           GHC.Generics
+import           Plant
 
 import           Prelude              hiding ( id )
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
-
-data Plant = Plant { id          :: Maybe Int
-                   , name        :: Maybe String
-                   , isTree      :: Maybe Bool
-                   , year        :: Maybe Int
-                   , description :: Maybe String
-                   }
-    deriving ( Eq, Generic, Show )
-
-instance FromJSON Plant
 
 tests :: TestTree
 tests = withResource (open testReadOnlyDatabaseOpts) close $ \databaseIO ->
