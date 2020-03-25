@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module GetTests ( tests ) where
 
 import           Asserts
@@ -136,5 +134,5 @@ getListFromNotExistingCollectionTest databaseIO =
         database <- databaseIO
         query <- Query.fromString "@noexisting/[isTree=:tree] | asc /name"
         Query.setBool False "tree" query
-        list <- getList database query :: IO ([(Int64, Maybe Value)])
+        list <- getList database query :: IO [(Int64, Maybe Value)]
         list @?= []

@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module PutTests ( tests ) where
 
 import           Data.Aeson       ()
