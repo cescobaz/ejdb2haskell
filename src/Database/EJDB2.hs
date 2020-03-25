@@ -116,11 +116,15 @@ exec visitor (Database ejdbPtr) query = do
     jql <- peek query
     ref <- newIORef []
     visitor <- mkEJDBExecVisitor (visitor ref)
-    let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
-    alloca $ \execPtr -> do
-        poke execPtr exec
-        c_ejdb_exec execPtr >>= checkRCFinally (freeHaskellFunPtr visitor)
-        reverse <$> readIORef ref
+    finally (alloca $ \execPtr -> do
+                 let exec = EJDBExec.zero { db = ejdb
+                                          , q = jql
+                                          , EJDBExec.visitor = visitor
+                                          }
+                 poke execPtr exec
+                 c_ejdb_exec execPtr >>= checkRC
+                 reverse <$> readIORef ref)
+            (freeHaskellFunPtr visitor)
 
 putNew :: Aeson.ToJSON a => Database -> String -> a -> IO Int64
 putNew (Database ejdbPtr) collection obj = do
