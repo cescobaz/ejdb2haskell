@@ -2,8 +2,6 @@ module Main ( main ) where
 
 import           CollectionTests
 
-import           Database.EJDB2
-
 import           DeleteTests
 
 import           GetTests
@@ -11,7 +9,6 @@ import           GetTests
 import           PutTests
 
 import           Test.Tasty
-import           Test.Tasty.HUnit
 
 main :: IO ()
 main = defaultMain Main.tests
