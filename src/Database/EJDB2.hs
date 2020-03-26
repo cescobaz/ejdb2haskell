@@ -60,9 +60,7 @@ open opts = do
         result <- decodeRC <$> c_ejdb_open optsPtr ejdb
         if result == Ok
             then return $ Database ejdb
-            else do
-                free ejdb
-                fail $ show result
+            else free ejdb >> fail (show result)
 
 close :: Database -> IO ()
 close (Database ejdb) = do
@@ -72,16 +70,16 @@ close (Database ejdb) = do
 getById :: Aeson.FromJSON a => Database -> String -> Int64 -> IO (Maybe a)
 getById (Database ejdbPtr) collection id = do
     ejdb <- peek ejdbPtr
-    cCollection <- newCString collection
     alloca $ \jblPtr ->
         finally (do
-                     result <- decodeRC
-                         <$> c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
+                     rc <- withCString collection $ \cCollection ->
+                         c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
+                     let result = decodeRC rc
                      case result of
                          Ok -> peek jblPtr >>= decode
                          ErrorNotfound -> return Nothing
                          _ -> fail $ show result)
-                (free cCollection >> c_jbl_destroy jblPtr)
+                (c_jbl_destroy jblPtr)
 
 getCount :: Database -> Query -> IO Int64
 getCount (Database ejdbPtr) query = do
