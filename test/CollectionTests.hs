@@ -13,8 +13,12 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 
 tests :: TestTree
-tests = withResource (open testDatabaseOpts) close $
-    \databaseIO -> testGroup "collection" [ removeTest databaseIO ]
+tests = withResource (open testDatabaseOpts) close $ \databaseIO ->
+    testGroup "collection"
+              [ removeTest databaseIO
+              , renameTest databaseIO
+              , ensureTest databaseIO
+              ]
 
 testDatabaseOpts :: Options
 testDatabaseOpts = minimalOptions "./test/collection-db" [ truncateOpenFlags ]
@@ -35,7 +39,7 @@ removeTest databaseIO = testCase "removeTest" $ do
                   }
 
 renameTest :: IO Database -> TestTree
-renameTest databaseIO = testCase "removeTest" $ do
+renameTest databaseIO = testCase "renameTest" $ do
     database <- databaseIO
     id <- putNew database "plants" plant
     renameCollection database "plants" "vegetables"
@@ -43,6 +47,21 @@ renameTest databaseIO = testCase "removeTest" $ do
     count @?= 0
     storedPlant <- getById database "vegetables" id
     storedPlant @?= Just plant
+  where
+    plant = Plant { id          = Nothing
+                  , name        = Just "pinus"
+                  , isTree      = Just True
+                  , year        = Just 1753
+                  , description = Just "wow 🌲"
+                  }
+
+ensureTest :: IO Database -> TestTree
+ensureTest databaseIO = testCase "ensureTest" $ do
+    database <- databaseIO
+    _ <- putNew database "plants" plant
+    ensureCollection database "vegetables"
+    assertException (userError "ErrorTargetCollectionExists")
+                    (renameCollection database "plants" "vegetables")
   where
     plant = Plant { id          = Nothing
                   , name        = Just "pinus"

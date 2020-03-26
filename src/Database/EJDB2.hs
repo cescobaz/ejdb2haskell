@@ -17,6 +17,7 @@ module Database.EJDB2
     , mergeOrPut
     , patch
     , delete
+    , ensureCollection
     , removeCollection
     , renameCollection
     ) where
@@ -164,6 +165,11 @@ delete (Database ejdbPtr) collection id = do
     withCString collection $ \cCollection ->
         c_ejdb_del ejdb cCollection (CIntMax id) >>= checkRC
 
+ensureCollection :: Database -> String -> IO ()
+ensureCollection (Database ejdbPtr) collection = do
+    ejdb <- peek ejdbPtr
+    withCString collection (c_ejdb_ensure_collection ejdb >=> checkRC)
+
 removeCollection :: Database -> String -> IO ()
 removeCollection (Database ejdbPtr) collection = do
     ejdb <- peek ejdbPtr
@@ -172,6 +178,6 @@ removeCollection (Database ejdbPtr) collection = do
 renameCollection :: Database -> String -> String -> IO ()
 renameCollection (Database ejdbPtr) collection newCollection = do
     ejdb <- peek ejdbPtr
-    withCString collection $
-        \cCollection -> withCString newCollection $ \cNewCollection ->
-        c_ejdb_rename_collection ejdb cCollection cNewCollection >>= checkRC
+    withCString collection $ \cCollection ->
+        withCString newCollection
+                    (c_ejdb_rename_collection ejdb cCollection >=> checkRC)

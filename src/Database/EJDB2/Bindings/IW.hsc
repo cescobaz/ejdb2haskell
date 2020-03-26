@@ -43,35 +43,44 @@ data Result =
     | ErrorInvalidArgs            -- Invalid function arguments.
     | ErrorOverflow               -- Overflow.
     | ErrorInvalidValue           -- Invalid value.
-    | ErrorNotFound                  -- Key not found (IWKV_ERROR_NOTFOUND) */
-    | ErrorKeyExists                 -- Key already exists (IWKV_ERROR_KEY_EXISTS) */
-    | ErrorMaxkvsz                   -- Size of Key+value must be not greater than 0xfffffff bytes (IWKV_ERROR_MAXKVSZ) */
-    | ErrorCorrupted                 -- Database file invalid or corrupted (IWKV_ERROR_CORRUPTED) */
-    | ErrorDupValueSize              -- Value size is not compatible for insertion into sorted values array (IWKV_ERROR_DUP_VALUE_SIZE) */
-    | ErrorKeyNumValueSize           -- Given key is not compatible to storage as number (IWKV_ERROR_KEY_NUM_VALUE_SIZE)  */
-    | ErrorIncompatibleDbMode        -- Incorpatible database open mode (IWKV_ERROR_INCOMPATIBLE_DB_MODE) */
-    | ErrorIncompatibleDbFormat      -- Incompatible database format version, please migrate database data (IWKV_ERROR_INCOMPATIBLE_DB_FORMAT) */
-    | ErrorCorruptedWalFile          -- Corrupted WAL file (IWKV_ERROR_CORRUPTED_WAL_FILE) */
-    | ErrorValueCannotBeIncremented  -- Stored value cannot be incremented/descremented (IWKV_ERROR_VALUE_CANNOT_BE_INCREMENTED) */
-    | ErrorWalModeRequired           -- Operation requires WAL enabled database. (IWKV_ERROR_WAL_MODE_REQUIRED) */
-    | ErrorBackupInProgress          -- Backup operation in progress. (IWKV_ERROR_BACKUP_IN_PROGRESS) */
-    | ErrorInvalidBuffer             -- Invalid JBL buffer (JBLERRORINVALIDBUFFER) */
-    | ErrorCreation                   -- Cannot create JBL object (JBLERRORCREATION) */
-    | ErrorInvalid                    -- Invalid JBL object (JBLERRORINVALID) */
-    | ErrorParseJson                 -- Failed to parse JSON string (JBLERRORPARSEJSON) */
-    | ErrorParseUnquotedString      -- Unquoted JSON string (JBLERRORPARSEUNQUOTEDSTRING) */
-    | ErrorParseInvalidCodepoint    -- Invalid unicode codepoint/escape sequence (JBLERRORPARSEINVALIDCODEPOINT) */
-    | ErrorParseInvalidUtf8         -- Invalid utf8 string (JBLERRORPARSEINVALIDUTF8) */
-    | ErrorJsonPointer               -- Invalid JSON pointer (rfc6901) path (JBLERRORJSONPOINTER) */
-    | ErrorPathNotFound              -- JSON object not matched the path specified (JBLERRORPATHNOTFOUND) */
-    | ErrorPatchInvalid              -- Invalid JSON patch specified (JBLERRORPATCHINVALID) */
-    | ErrorPatchInvalidOp           -- Invalid JSON patch operation specified (JBLERRORPATCHINVALIDOP) */
-    | ErrorPatchNovalue              -- No value specified in JSON patch (JBLERRORPATCHNOVALUE) */
-    | ErrorPatchTargetInvalid       -- Could not find target object to set value (JBLERRORPATCHTARGETINVALID) */
-    | ErrorPatchInvalidValue        -- Invalid value specified by patch (JBLERRORPATCHINVALIDVALUE) */
-    | ErrorPatchInvalidArrayIndex  -- Invalid array index in JSON patch path (JBLERRORPATCHINVALIDARRAYINDEX) */
-    | ErrorNotAnObject              -- JBL is not an object (JBLERRORNOTANOBJECT) */
-    | ErrorPatchTestFailed          -- JSON patch test operation failed (JBLERRORPATCHTESTFAILED) */
+    | ErrorNotFound                  -- Key not found (IWKV_ERROR_NOTFOUND)
+    | ErrorKeyExists                 -- Key already exists (IWKV_ERROR_KEY_EXISTS)
+    | ErrorMaxkvsz                   -- Size of Key+value must be not greater than 0xfffffff bytes (IWKV_ERROR_MAXKVSZ)
+    | ErrorCorrupted                 -- Database file invalid or corrupted (IWKV_ERROR_CORRUPTED)
+    | ErrorDupValueSize              -- Value size is not compatible for insertion into sorted values array (IWKV_ERROR_DUP_VALUE_SIZE)
+    | ErrorKeyNumValueSize           -- Given key is not compatible to storage as number (IWKV_ERROR_KEY_NUM_VALUE_SIZE)
+    | ErrorIncompatibleDbMode        -- Incorpatible database open mode (IWKV_ERROR_INCOMPATIBLE_DB_MODE)
+    | ErrorIncompatibleDbFormat      -- Incompatible database format version, please migrate database data (IWKV_ERROR_INCOMPATIBLE_DB_FORMAT)
+    | ErrorCorruptedWalFile          -- Corrupted WAL file (IWKV_ERROR_CORRUPTED_WAL_FILE)
+    | ErrorValueCannotBeIncremented  -- Stored value cannot be incremented/descremented (IWKV_ERROR_VALUE_CANNOT_BE_INCREMENTED)
+    | ErrorWalModeRequired           -- Operation requires WAL enabled database. (IWKV_ERROR_WAL_MODE_REQUIRED)
+    | ErrorBackupInProgress          -- Backup operation in progress. (IWKV_ERROR_BACKUP_IN_PROGRESS)
+    | ErrorInvalidBuffer             -- Invalid JBL buffer (JBLERRORINVALIDBUFFER)
+    | ErrorCreation                   -- Cannot create JBL object (JBLERRORCREATION)
+    | ErrorInvalid                    -- Invalid JBL object (JBLERRORINVALID)
+    | ErrorParseJson                 -- Failed to parse JSON string (JBLERRORPARSEJSON)
+    | ErrorParseUnquotedString      -- Unquoted JSON string (JBLERRORPARSEUNQUOTEDSTRING)
+    | ErrorParseInvalidCodepoint    -- Invalid unicode codepoint/escape sequence (JBLERRORPARSEINVALIDCODEPOINT)
+    | ErrorParseInvalidUtf8         -- Invalid utf8 string (JBLERRORPARSEINVALIDUTF8)
+    | ErrorJsonPointer               -- Invalid JSON pointer (rfc6901) path (JBLERRORJSONPOINTER)
+    | ErrorPathNotFound              -- JSON object not matched the path specified (JBLERRORPATHNOTFOUND)
+    | ErrorPatchInvalid              -- Invalid JSON patch specified (JBLERRORPATCHINVALID)
+    | ErrorPatchInvalidOp           -- Invalid JSON patch operation specified (JBLERRORPATCHINVALIDOP)
+    | ErrorPatchNovalue              -- No value specified in JSON patch (JBLERRORPATCHNOVALUE)
+    | ErrorPatchTargetInvalid       -- Could not find target object to set value (JBLERRORPATCHTARGETINVALID)
+    | ErrorPatchInvalidValue        -- Invalid value specified by patch (JBLERRORPATCHINVALIDVALUE)
+    | ErrorPatchInvalidArrayIndex  -- Invalid array index in JSON patch path (JBLERRORPATCHINVALIDARRAYINDEX)
+    | ErrorNotAnObject              -- JBL is not an object (JBLERRORNOTANOBJECT)
+    | ErrorPatchTestFailed          -- JSON patch test operation failed (JBLERRORPATCHTESTFAILED)
+    | ErrorInvalidCollectionName               -- Invalid collection name
+    | ErrorInvalidCollectionMeta               -- Invalid collection metadata
+    | ErrorInvalidCollectionIndexMeta               -- Invalid collection index metadata
+    | ErrorInvalidIndexMode               -- Invalid index mode specified
+    | ErrorMismatchedIndexUniquenessMode               -- Index exists but mismatched uniqueness constraint
+    | ErrorUniqueIndexConstraintViolated               -- Unique index constraint violated
+    | ErrorCollectionNotFound               -- Collection not found
+    | ErrorTargetCollectionExists               -- Target collection exists
+    | ErrorPatchJsonNotObject               -- Patch JSON must be an object (map)
     deriving ( Eq, Show )
 
 decodeRC :: RC -> Result
@@ -125,4 +134,13 @@ decodeRC rc = case rc of
   #{const JBL_ERROR_PATCH_INVALID_ARRAY_INDEX}  ->  ErrorPatchInvalidArrayIndex
   #{const JBL_ERROR_NOT_AN_OBJECT}              ->  ErrorNotAnObject
   #{const JBL_ERROR_PATCH_TEST_FAILED}          ->  ErrorPatchTestFailed
+  #{const EJDB_ERROR_INVALID_COLLECTION_NAME}             ->  ErrorInvalidCollectionName
+  #{const EJDB_ERROR_INVALID_COLLECTION_META}             ->  ErrorInvalidCollectionMeta
+  #{const EJDB_ERROR_INVALID_COLLECTION_INDEX_META}       ->  ErrorInvalidCollectionIndexMeta
+  #{const EJDB_ERROR_INVALID_INDEX_MODE}                  ->  ErrorInvalidIndexMode
+  #{const EJDB_ERROR_MISMATCHED_INDEX_UNIQUENESS_MODE}    ->  ErrorMismatchedIndexUniquenessMode
+  #{const EJDB_ERROR_UNIQUE_INDEX_CONSTRAINT_VIOLATED}    ->  ErrorUniqueIndexConstraintViolated
+  #{const EJDB_ERROR_COLLECTION_NOT_FOUND}                ->  ErrorCollectionNotFound
+  #{const EJDB_ERROR_TARGET_COLLECTION_EXISTS}            ->  ErrorTargetCollectionExists
+  #{const EJDB_ERROR_PATCH_JSON_NOT_OBJECT}               ->  ErrorPatchJsonNotObject
   _                                                ->  error $ "Database.EJDB2.Bindings.IW.decodeRC " ++ show rc

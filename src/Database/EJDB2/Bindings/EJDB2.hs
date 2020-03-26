@@ -49,6 +49,9 @@ foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_patch" c_ejdb_patch
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_del" c_ejdb_del
     :: EJDB -> CString -> CIntMax -> IO RC
 
+foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_ensure_collection" c_ejdb_ensure_collection
+    :: EJDB -> CString -> IO RC
+
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_remove_collection" c_ejdb_remove_collection
     :: EJDB -> CString -> IO RC
 
