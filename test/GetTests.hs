@@ -123,7 +123,7 @@ getByIdFromNotExistingCollectionTest :: IO Database -> TestTree
 getByIdFromNotExistingCollectionTest databaseIO =
     testCase "getByIdFromNotExistingCollection" $ do
         database <- databaseIO
-        assertException (userError "ErrorNotExists")
+        assertException (userError "ErrorNotExists") -- this happens only with readonlyOpenFlags
                         (getById database "noexisting" 1 :: IO (Maybe Value))
 
 -- on ejdb_exec there is no error if collection doesn't exists
