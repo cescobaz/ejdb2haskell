@@ -13,6 +13,7 @@ module Database.EJDB2
     , getList
     , getList'
     , putNew
+    , put
     ) where
 
 import           Control.Exception
@@ -130,3 +131,9 @@ putNew (Database ejdbPtr) collection obj = do
     encode obj $ \doc -> withCString collection $ \cCollection ->
         alloca $ \idPtr -> c_ejdb_put_new ejdb cCollection doc idPtr >>= checkRC
         >> peek idPtr >>= \(CIntMax int) -> return int
+
+put :: Aeson.ToJSON a => Database -> String -> a -> Int64 -> IO ()
+put (Database ejdbPtr) collection obj id = do
+    ejdb <- peek ejdbPtr
+    encode obj $ \doc -> withCString collection $ \cCollection ->
+        c_ejdb_put ejdb cCollection doc (CIntMax id) >>= checkRC
