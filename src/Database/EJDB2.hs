@@ -15,6 +15,7 @@ module Database.EJDB2
     , putNew
     , put
     , mergeOrPut
+    , patch
     ) where
 
 import           Control.Exception
@@ -146,3 +147,11 @@ mergeOrPut (Database ejdbPtr) collection obj id = do
     withCString collection $ \cCollection ->
         BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
         c_ejdb_merge_or_put ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
+
+patch :: Aeson.ToJSON a => Database -> String -> a -> Int64 -> IO ()
+patch (Database ejdbPtr) collection obj id = do
+    ejdb <- peek ejdbPtr
+    withCString collection $ \cCollection ->
+        BS.useAsCString (encodeToByteString obj) $
+        \jsonPatch -> peekCString jsonPatch >>= putStrLn
+        >> c_ejdb_patch ejdb cCollection jsonPatch (CIntMax id) >>= checkRC

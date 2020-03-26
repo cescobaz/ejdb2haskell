@@ -55,6 +55,23 @@ data Result =
     | ErrorValueCannotBeIncremented  -- Stored value cannot be incremented/descremented (IWKV_ERROR_VALUE_CANNOT_BE_INCREMENTED) */
     | ErrorWalModeRequired           -- Operation requires WAL enabled database. (IWKV_ERROR_WAL_MODE_REQUIRED) */
     | ErrorBackupInProgress          -- Backup operation in progress. (IWKV_ERROR_BACKUP_IN_PROGRESS) */
+    | ErrorInvalidBuffer             -- Invalid JBL buffer (JBLERRORINVALIDBUFFER) */
+    | ErrorCreation                   -- Cannot create JBL object (JBLERRORCREATION) */
+    | ErrorInvalid                    -- Invalid JBL object (JBLERRORINVALID) */
+    | ErrorParseJson                 -- Failed to parse JSON string (JBLERRORPARSEJSON) */
+    | ErrorParseUnquotedString      -- Unquoted JSON string (JBLERRORPARSEUNQUOTEDSTRING) */
+    | ErrorParseInvalidCodepoint    -- Invalid unicode codepoint/escape sequence (JBLERRORPARSEINVALIDCODEPOINT) */
+    | ErrorParseInvalidUtf8         -- Invalid utf8 string (JBLERRORPARSEINVALIDUTF8) */
+    | ErrorJsonPointer               -- Invalid JSON pointer (rfc6901) path (JBLERRORJSONPOINTER) */
+    | ErrorPathNotfound              -- JSON object not matched the path specified (JBLERRORPATHNOTFOUND) */
+    | ErrorPatchInvalid              -- Invalid JSON patch specified (JBLERRORPATCHINVALID) */
+    | ErrorPatchInvalidOp           -- Invalid JSON patch operation specified (JBLERRORPATCHINVALIDOP) */
+    | ErrorPatchNovalue              -- No value specified in JSON patch (JBLERRORPATCHNOVALUE) */
+    | ErrorPatchTargetInvalid       -- Could not find target object to set value (JBLERRORPATCHTARGETINVALID) */
+    | ErrorPatchInvalidValue        -- Invalid value specified by patch (JBLERRORPATCHINVALIDVALUE) */
+    | ErrorPatchInvalidArrayIndex  -- Invalid array index in JSON patch path (JBLERRORPATCHINVALIDARRAYINDEX) */
+    | ErrorNotAnObject              -- JBL is not an object (JBLERRORNOTANOBJECT) */
+    | ErrorPatchTestFailed          -- JSON patch test operation failed (JBLERRORPATCHTESTFAILED) */
     deriving ( Eq, Show )
 
 decodeRC :: RC -> Result
@@ -91,4 +108,21 @@ decodeRC rc = case rc of
   #{const IWKV_ERROR_VALUE_CANNOT_BE_INCREMENTED}  ->  ErrorValueCannotBeIncremented
   #{const IWKV_ERROR_WAL_MODE_REQUIRED}            ->  ErrorWalModeRequired
   #{const IWKV_ERROR_BACKUP_IN_PROGRESS}           ->  ErrorBackupInProgress
+  #{const JBL_ERROR_INVALID_BUFFER}             ->  ErrorInvalidBuffer
+  #{const JBL_ERROR_CREATION}                   ->  ErrorCreation
+  #{const JBL_ERROR_INVALID}                    ->  ErrorInvalid
+  #{const JBL_ERROR_PARSE_JSON}                 ->  ErrorParseJson
+  #{const JBL_ERROR_PARSE_UNQUOTED_STRING}      ->  ErrorParseUnquotedString
+  #{const JBL_ERROR_PARSE_INVALID_CODEPOINT}    ->  ErrorParseInvalidCodepoint
+  #{const JBL_ERROR_PARSE_INVALID_UTF8}         ->  ErrorParseInvalidUtf8
+  #{const JBL_ERROR_JSON_POINTER}               ->  ErrorJsonPointer
+  #{const JBL_ERROR_PATH_NOTFOUND}              ->  ErrorPathNotfound
+  #{const JBL_ERROR_PATCH_INVALID}              ->  ErrorPatchInvalid
+  #{const JBL_ERROR_PATCH_INVALID_OP}           ->  ErrorPatchInvalidOp
+  #{const JBL_ERROR_PATCH_NOVALUE}              ->  ErrorPatchNovalue
+  #{const JBL_ERROR_PATCH_TARGET_INVALID}       ->  ErrorPatchTargetInvalid
+  #{const JBL_ERROR_PATCH_INVALID_VALUE}        ->  ErrorPatchInvalidValue
+  #{const JBL_ERROR_PATCH_INVALID_ARRAY_INDEX}  ->  ErrorPatchInvalidArrayIndex
+  #{const JBL_ERROR_NOT_AN_OBJECT}              ->  ErrorNotAnObject
+  #{const JBL_ERROR_PATCH_TEST_FAILED}          ->  ErrorPatchTestFailed
   _                                                ->  error $ "Database.EJDB2.Bindings.IW.decodeRC " ++ show rc

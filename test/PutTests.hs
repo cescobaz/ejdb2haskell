@@ -4,6 +4,7 @@ module PutTests ( tests ) where
 
 import qualified Data.Aeson          as Aeson
 import qualified Data.HashMap.Strict as Map
+import qualified Data.Vector         as Vector
 
 import           Database.EJDB2
 
@@ -22,6 +23,7 @@ tests = withResource (open testDatabaseOpts) close $ \databaseIO ->
               , putOnExistingIdTest databaseIO
               , mergeOrPutNewTest databaseIO
               , mergeOrPutExistingTest databaseIO
+              , patchTest databaseIO
               ]
 
 testDatabaseOpts :: Options
@@ -105,6 +107,37 @@ mergeOrPutExistingTest databaseIO = testCase "mergeOrPutExistingTest" $ do
         Map.fromList [ ("year", Aeson.Null)
                      , ("description", "a tipical christmas tree")
                      ]
+
+    lastPlant =
+        plant { year = Nothing, description = Just "a tipical christmas tree" }
+
+patchTest :: IO Database -> TestTree
+patchTest databaseIO = testCase "patchTest" $ do
+    database <- databaseIO
+    id <- putNew database "plants" plant
+    patch database "plants" jsonPatch id
+    storedPlant <- getById database "plants" id
+    storedPlant @?= Just lastPlant
+  where
+    plant = Plant { id          = Nothing
+                  , name        = Just "pinus"
+                  , isTree      = Just True
+                  , year        = Just 1753
+                  , description = Just "wow 🌲"
+                  }
+
+    jsonPatch = Aeson.Array $
+        Vector.fromList [ Aeson.Object $ Map.fromList [ ("op", "remove")
+                                                      , ("path", "/year")
+                                                      ]
+                        , Aeson.Object $
+                              Map.fromList [ ("op", "replace")
+                                           , ("path", "/description")
+                                           , ( "value"
+                                                 , "a tipical christmas tree"
+                                                 )
+                                           ]
+                        ]
 
     lastPlant =
         plant { year = Nothing, description = Just "a tipical christmas tree" }
