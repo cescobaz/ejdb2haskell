@@ -1,10 +1,15 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module PutTests ( tests ) where
+
+import qualified Data.Aeson          as Aeson
+import qualified Data.HashMap.Strict as Map
 
 import           Database.EJDB2
 
 import           Plant
 
-import           Prelude          hiding ( id )
+import           Prelude             hiding ( id )
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
@@ -15,6 +20,8 @@ tests = withResource (open testDatabaseOpts) close $ \databaseIO ->
               [ putNewTest databaseIO
               , putOnNewIdTest databaseIO
               , putOnExistingIdTest databaseIO
+              , mergeOrPutNewTest databaseIO
+              , mergeOrPutExistingTest databaseIO
               ]
 
 testDatabaseOpts :: Options
@@ -64,3 +71,40 @@ putOnExistingIdTest databaseIO = testCase "putOnExistingIdTest" $ do
                   }
 
     lastPlant = plant { description = Just "a tipical christmas tree" }
+
+mergeOrPutNewTest :: IO Database -> TestTree
+mergeOrPutNewTest databaseIO = testCase "mergeOrPutNewTest" $ do
+    database <- databaseIO
+    mergeOrPut database "plants" plant 4242
+    storedPlant <- getById database "plants" 4242
+    storedPlant @?= Just plant
+  where
+    plant = Plant { id          = Nothing
+                  , name        = Just "pinus"
+                  , isTree      = Just True
+                  , year        = Just 1753
+                  , description = Just "wow 🌲"
+                  }
+
+mergeOrPutExistingTest :: IO Database -> TestTree
+mergeOrPutExistingTest databaseIO = testCase "mergeOrPutExistingTest" $ do
+    database <- databaseIO
+    id <- putNew database "plants" plant
+    mergeOrPut database "plants" jsonPatch id
+    storedPlant <- getById database "plants" id
+    storedPlant @?= Just lastPlant
+  where
+    plant = Plant { id          = Nothing
+                  , name        = Just "pinus"
+                  , isTree      = Just True
+                  , year        = Just 1753
+                  , description = Just "wow 🌲"
+                  }
+
+    jsonPatch = Aeson.Object $
+        Map.fromList [ ("year", Aeson.Null)
+                     , ("description", "a tipical christmas tree")
+                     ]
+
+    lastPlant =
+        plant { year = Nothing, description = Just "a tipical christmas tree" }

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Database.EJDB2.JBL ( decode, decode', encode ) where
+module Database.EJDB2.JBL ( decode, decode', encode, encodeToByteString ) where
 
 import           Control.Exception
 
@@ -68,9 +68,11 @@ printerArray ref array = do
 
 encode :: Aeson.ToJSON a => a -> (JBL -> IO b) -> IO b
 encode obj f = do
-    let byteString = BSL.toStrict $ Aeson.encode obj
+    let byteString = encodeToByteString obj
     BS.useAsCString byteString $ \string -> alloca $ \jblPtr ->
         finally (c_jbl_from_json jblPtr string >>= IW.checkRC >> peek jblPtr
                  >>= f)
                 (c_jbl_destroy jblPtr)
 
+encodeToByteString :: Aeson.ToJSON a => a -> BS.ByteString
+encodeToByteString obj = BSL.toStrict $ Aeson.encode obj

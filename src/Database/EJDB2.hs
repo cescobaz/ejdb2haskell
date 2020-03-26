@@ -14,12 +14,14 @@ module Database.EJDB2
     , getList'
     , putNew
     , put
+    , mergeOrPut
     ) where
 
 import           Control.Exception
 import           Control.Monad
 
 import qualified Data.Aeson                             as Aeson
+import qualified Data.ByteString                        as BS
 import           Data.IORef
 import           Data.Int
 
@@ -137,3 +139,10 @@ put (Database ejdbPtr) collection obj id = do
     ejdb <- peek ejdbPtr
     encode obj $ \doc -> withCString collection $ \cCollection ->
         c_ejdb_put ejdb cCollection doc (CIntMax id) >>= checkRC
+
+mergeOrPut :: Aeson.ToJSON a => Database -> String -> a -> Int64 -> IO ()
+mergeOrPut (Database ejdbPtr) collection obj id = do
+    ejdb <- peek ejdbPtr
+    withCString collection $ \cCollection ->
+        BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
+        c_ejdb_merge_or_put ejdb cCollection jsonPatch (CIntMax id) >>= checkRC

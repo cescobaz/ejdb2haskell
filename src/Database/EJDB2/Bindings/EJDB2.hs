@@ -39,3 +39,6 @@ foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_put_new" c_ejdb_put_new
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_put" c_ejdb_put
     :: EJDB -> CString -> JBL -> CIntMax -> IO RC
+
+foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_merge_or_put" c_ejdb_merge_or_put
+    :: EJDB -> CString -> CString -> CIntMax -> IO RC
