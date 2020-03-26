@@ -17,6 +17,8 @@ module Database.EJDB2
     , mergeOrPut
     , patch
     , delete
+    , removeCollection
+    , renameCollection
     ) where
 
 import           Control.Exception
@@ -153,12 +155,23 @@ patch :: Aeson.ToJSON a => Database -> String -> a -> Int64 -> IO ()
 patch (Database ejdbPtr) collection obj id = do
     ejdb <- peek ejdbPtr
     withCString collection $ \cCollection ->
-        BS.useAsCString (encodeToByteString obj) $
-        \jsonPatch -> peekCString jsonPatch >>= putStrLn
-        >> c_ejdb_patch ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
+        BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
+        c_ejdb_patch ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
 
 delete :: Database -> String -> Int64 -> IO ()
 delete (Database ejdbPtr) collection id = do
     ejdb <- peek ejdbPtr
     withCString collection $ \cCollection ->
         c_ejdb_del ejdb cCollection (CIntMax id) >>= checkRC
+
+removeCollection :: Database -> String -> IO ()
+removeCollection (Database ejdbPtr) collection = do
+    ejdb <- peek ejdbPtr
+    withCString collection (c_ejdb_remove_collection ejdb >=> checkRC)
+
+renameCollection :: Database -> String -> String -> IO ()
+renameCollection (Database ejdbPtr) collection newCollection = do
+    ejdb <- peek ejdbPtr
+    withCString collection $
+        \cCollection -> withCString newCollection $ \cNewCollection ->
+        c_ejdb_rename_collection ejdb cCollection cNewCollection >>= checkRC
