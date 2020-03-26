@@ -11,7 +11,11 @@ import           Test.Tasty.HUnit
 
 tests :: TestTree
 tests = withResource (open testDatabaseOpts) close $ \databaseIO ->
-    testGroup "put" [ putNewTest databaseIO, putOnNewIdTest databaseIO ]
+    testGroup "put"
+              [ putNewTest databaseIO
+              , putOnNewIdTest databaseIO
+              , putOnExistingIdTest databaseIO
+              ]
 
 testDatabaseOpts :: Options
 testDatabaseOpts = minimalOptions "./test/put-db" [ truncateOpenFlags ]
@@ -43,3 +47,20 @@ putOnNewIdTest databaseIO = testCase "putOnNewIdTest" $ do
                   , year        = Just 1753
                   , description = Just "wow 🌲"
                   }
+
+putOnExistingIdTest :: IO Database -> TestTree
+putOnExistingIdTest databaseIO = testCase "putOnExistingIdTest" $ do
+    database <- databaseIO
+    id <- putNew database "plants" plant
+    put database "plants" lastPlant id
+    storedPlant <- getById database "plants" id
+    storedPlant @?= Just lastPlant
+  where
+    plant = Plant { id          = Nothing
+                  , name        = Just "pinus"
+                  , isTree      = Just True
+                  , year        = Just 1753
+                  , description = Just "wow 🌲"
+                  }
+
+    lastPlant = plant { description = Just "a tipical christmas tree" }
