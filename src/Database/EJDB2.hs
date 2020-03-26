@@ -16,6 +16,7 @@ module Database.EJDB2
     , put
     , mergeOrPut
     , patch
+    , delete
     ) where
 
 import           Control.Exception
@@ -81,7 +82,7 @@ getById (Database ejdbPtr) collection id = do
                      let result = decodeRC rc
                      case result of
                          Ok -> peek jblPtr >>= decode
-                         ErrorNotfound -> return Nothing
+                         ErrorNotFound -> return Nothing
                          _ -> fail $ show result)
                 (c_jbl_destroy jblPtr)
 
@@ -155,3 +156,9 @@ patch (Database ejdbPtr) collection obj id = do
         BS.useAsCString (encodeToByteString obj) $
         \jsonPatch -> peekCString jsonPatch >>= putStrLn
         >> c_ejdb_patch ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
+
+delete :: Database -> String -> Int64 -> IO ()
+delete (Database ejdbPtr) collection id = do
+    ejdb <- peek ejdbPtr
+    withCString collection $ \cCollection ->
+        c_ejdb_del ejdb cCollection (CIntMax id) >>= checkRC

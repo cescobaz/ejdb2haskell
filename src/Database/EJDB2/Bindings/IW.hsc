@@ -43,7 +43,7 @@ data Result =
     | ErrorInvalidArgs            -- Invalid function arguments.
     | ErrorOverflow               -- Overflow.
     | ErrorInvalidValue           -- Invalid value.
-    | ErrorNotfound                  -- Key not found (IWKV_ERROR_NOTFOUND) */
+    | ErrorNotFound                  -- Key not found (IWKV_ERROR_NOTFOUND) */
     | ErrorKeyExists                 -- Key already exists (IWKV_ERROR_KEY_EXISTS) */
     | ErrorMaxkvsz                   -- Size of Key+value must be not greater than 0xfffffff bytes (IWKV_ERROR_MAXKVSZ) */
     | ErrorCorrupted                 -- Database file invalid or corrupted (IWKV_ERROR_CORRUPTED) */
@@ -63,7 +63,7 @@ data Result =
     | ErrorParseInvalidCodepoint    -- Invalid unicode codepoint/escape sequence (JBLERRORPARSEINVALIDCODEPOINT) */
     | ErrorParseInvalidUtf8         -- Invalid utf8 string (JBLERRORPARSEINVALIDUTF8) */
     | ErrorJsonPointer               -- Invalid JSON pointer (rfc6901) path (JBLERRORJSONPOINTER) */
-    | ErrorPathNotfound              -- JSON object not matched the path specified (JBLERRORPATHNOTFOUND) */
+    | ErrorPathNotFound              -- JSON object not matched the path specified (JBLERRORPATHNOTFOUND) */
     | ErrorPatchInvalid              -- Invalid JSON patch specified (JBLERRORPATCHINVALID) */
     | ErrorPatchInvalidOp           -- Invalid JSON patch operation specified (JBLERRORPATCHINVALIDOP) */
     | ErrorPatchNovalue              -- No value specified in JSON patch (JBLERRORPATCHNOVALUE) */
@@ -96,7 +96,7 @@ decodeRC rc = case rc of
   #{const IW_ERROR_INVALID_ARGS}   ->    ErrorInvalidArgs
   #{const IW_ERROR_OVERFLOW}   ->        ErrorOverflow
   #{const IW_ERROR_INVALID_VALUE}   ->   ErrorInvalidValue
-  #{const IWKV_ERROR_NOTFOUND}                     ->  ErrorNotfound
+  #{const IWKV_ERROR_NOTFOUND}                     ->  ErrorNotFound
   #{const IWKV_ERROR_KEY_EXISTS}                   ->  ErrorKeyExists
   #{const IWKV_ERROR_MAXKVSZ}                      ->  ErrorMaxkvsz
   #{const IWKV_ERROR_CORRUPTED}                    ->  ErrorCorrupted
@@ -116,7 +116,7 @@ decodeRC rc = case rc of
   #{const JBL_ERROR_PARSE_INVALID_CODEPOINT}    ->  ErrorParseInvalidCodepoint
   #{const JBL_ERROR_PARSE_INVALID_UTF8}         ->  ErrorParseInvalidUtf8
   #{const JBL_ERROR_JSON_POINTER}               ->  ErrorJsonPointer
-  #{const JBL_ERROR_PATH_NOTFOUND}              ->  ErrorPathNotfound
+  #{const JBL_ERROR_PATH_NOTFOUND}              ->  ErrorPathNotFound
   #{const JBL_ERROR_PATCH_INVALID}              ->  ErrorPatchInvalid
   #{const JBL_ERROR_PATCH_INVALID_OP}           ->  ErrorPatchInvalidOp
   #{const JBL_ERROR_PATCH_NOVALUE}              ->  ErrorPatchNovalue
