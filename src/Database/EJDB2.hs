@@ -22,13 +22,19 @@ module Database.EJDB2
     , removeCollection
     , renameCollection
     , getMeta
+    , IndexMode
+    , uniqueIndexMode
+    , strIndexMode
+    , f64IndexMode
+    , i64IndexMode
+    , ensureIndex
     ) where
 
 import           Control.Exception
 import           Control.Monad
 
-import qualified Data.Aeson                             as Aeson
-import qualified Data.ByteString                        as BS
+import qualified Data.Aeson                              as Aeson
+import qualified Data.ByteString                         as BS
 import           Data.IORef
 import           Data.Int
 
@@ -36,13 +42,17 @@ import           Database.EJDB2.Bindings.EJDB2
 import           Database.EJDB2.Bindings.IW
 import           Database.EJDB2.Bindings.JBL
 import           Database.EJDB2.Bindings.Types.EJDB
-import           Database.EJDB2.Bindings.Types.EJDBDoc  as EJDBDoc
-import           Database.EJDB2.Bindings.Types.EJDBExec as EJDBExec
-import           Database.EJDB2.Bindings.Types.EJDBOpts as EJDBOpts
+import           Database.EJDB2.Bindings.Types.EJDBDoc   as EJDBDoc
+import           Database.EJDB2.Bindings.Types.EJDBExec  as EJDBExec
+import           Database.EJDB2.Bindings.Types.EJDBOpts  as EJDBOpts
 import           Database.EJDB2.Bindings.Types.IWKVOpts
                  ( OpenFlags, noTrimOnCloseOpenFlags, readonlyOpenFlags
                  , truncateOpenFlags )
-import           Database.EJDB2.Bindings.Types.IWKVOpts as IWKVOpts
+import           Database.EJDB2.Bindings.Types.IWKVOpts  as IWKVOpts
+import           Database.EJDB2.Bindings.Types.IndexMode
+                 ( IndexMode, f64IndexMode, i64IndexMode, strIndexMode
+                 , uniqueIndexMode )
+import qualified Database.EJDB2.Bindings.Types.IndexMode as IndexMode
 import           Database.EJDB2.JBL
 import           Database.EJDB2.Query
 
@@ -52,7 +62,7 @@ import           Foreign.Marshal.Alloc
 import           Foreign.Ptr
 import           Foreign.Storable
 
-import           Prelude                                hiding ( init )
+import           Prelude                                 hiding ( init )
 
 newtype Database = Database (Ptr EJDB)
 
@@ -193,3 +203,11 @@ getMeta (Database ejdbPtr) = do
     ejdb <- peek ejdbPtr
     alloca $ \jblPtr -> c_ejdb_get_meta ejdb jblPtr >>= checkRC
         >> finally (peek jblPtr >>= decode) (c_jbl_destroy jblPtr)
+
+ensureIndex :: Database -> String -> String -> [IndexMode] -> IO ()
+ensureIndex (Database ejdbPtr) collection path indexMode = do
+    ejdb <- peek ejdbPtr
+    withCString collection $ \cCollection -> withCString path $
+        \cPath -> c_ejdb_ensure_index ejdb cCollection cPath mode >>= checkRC
+  where
+    mode = IndexMode.unIndexMode $ IndexMode.combineIndexMode indexMode

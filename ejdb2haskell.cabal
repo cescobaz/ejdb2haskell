@@ -26,6 +26,7 @@ library
     , Database.EJDB2.Bindings.Types.EJDBDoc
     , Database.EJDB2.Bindings.Types.IWKVOpts
     , Database.EJDB2.Bindings.Types.IWKVWalOpts
+    , Database.EJDB2.Bindings.Types.IndexMode
   build-depends:       base ^>=4.12.0.0
                      , bytestring ==0.10.10.0
                      , aeson ==1.4.6.0
