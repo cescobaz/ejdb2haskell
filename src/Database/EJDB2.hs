@@ -28,6 +28,7 @@ module Database.EJDB2
     , f64IndexMode
     , i64IndexMode
     , ensureIndex
+    , removeIndex
     ) where
 
 import           Control.Exception
@@ -191,5 +192,12 @@ ensureIndex :: Database -> String -> String -> [IndexMode] -> IO ()
 ensureIndex (Database _ ejdb) collection path indexMode =
     withCString collection $ \cCollection -> withCString path $
     \cPath -> c_ejdb_ensure_index ejdb cCollection cPath mode >>= checkRC
+  where
+    mode = IndexMode.unIndexMode $ IndexMode.combineIndexMode indexMode
+
+removeIndex :: Database -> String -> String -> [IndexMode] -> IO ()
+removeIndex (Database _ ejdb) collection path indexMode =
+    withCString collection $ \cCollection -> withCString path $
+    \cPath -> c_ejdb_remove_index ejdb cCollection cPath mode >>= checkRC
   where
     mode = IndexMode.unIndexMode $ IndexMode.combineIndexMode indexMode

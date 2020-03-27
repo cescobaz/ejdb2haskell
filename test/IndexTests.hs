@@ -17,7 +17,8 @@ import           Test.Tasty.HUnit
 
 tests :: TestTree
 tests = withResource (open testDatabaseOpts) close $ \databaseIO ->
-    testGroup "index" [ getMetaTest databaseIO, createIndexTest databaseIO ]
+    testGroup "index"
+              [ getMetaTest databaseIO, createAndRemoveIndexTest databaseIO ]
 
 testDatabaseOpts :: Options
 testDatabaseOpts = minimalOptions "./test/index-db" [ truncateOpenFlags ]
@@ -29,11 +30,22 @@ getMetaTest databaseIO = testCase "getMetaTest" $ do
     let (major : '.' : minor : '.' : _) = Meta.version meta
     [ major, '.', minor ] @?= "2.0"
 
-createIndexTest :: IO Database -> TestTree
-createIndexTest databaseIO = testCase "createIndexTest" $ do
+createAndRemoveIndexTest :: IO Database -> TestTree
+createAndRemoveIndexTest databaseIO = testCase "createAndRemoveIndexTest" $ do
     database <- databaseIO
     ensureCollection database "plants"
-    ensureIndex database "plants" "/name" [ uniqueIndexMode, strIndexMode ]
+    ensureIndex database "plants" "/name" mode
+    indexesCount <- getIndexesCount database
+    indexesCount @?= 1
+    removeIndex database "plants" "/name" mode
+    indexesCountLast <- getIndexesCount database
+    indexesCountLast @?= 0
+  where
+    mode = [ uniqueIndexMode, strIndexMode ]
+
+getIndexesCount :: Database -> IO Int
+getIndexesCount database = do
     Just meta <- getMeta database
     let indexes = CollectionMeta.indexes $ head $ Meta.collections meta
-    length indexes @?= 1
+    return $ length indexes
+

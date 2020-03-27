@@ -61,5 +61,8 @@ foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_rename_collection" c_ejdb_rename
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_ensure_index" c_ejdb_ensure_index
     :: EJDB -> CString -> CString -> CUChar -> IO RC
 
+foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_remove_index" c_ejdb_remove_index
+    :: EJDB -> CString -> CString -> CUChar -> IO RC
+
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_get_meta" c_ejdb_get_meta
     :: EJDB -> Ptr JBL -> IO RC
