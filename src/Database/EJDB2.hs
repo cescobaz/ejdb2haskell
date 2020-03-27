@@ -64,7 +64,7 @@ import           Foreign.Storable
 
 import           Prelude                                 hiding ( init )
 
-newtype Database = Database (Ptr EJDB)
+data Database = Database (Ptr EJDB) EJDB
 
 type Options = EJDBOpts
 
@@ -78,36 +78,33 @@ init = c_ejdb_init >>= checkRC
 
 open :: Options -> IO Database
 open opts = do
-    ejdb <- malloc
+    ejdbPtr <- malloc
     alloca $ \optsPtr -> do
         poke optsPtr opts
-        result <- decodeRC <$> c_ejdb_open optsPtr ejdb
+        result <- decodeRC <$> c_ejdb_open optsPtr ejdbPtr
         if result == Ok
-            then return $ Database ejdb
-            else free ejdb >> fail (show result)
+            then peek ejdbPtr >>= return . Database ejdbPtr
+            else free ejdbPtr >> fail (show result)
 
 close :: Database -> IO ()
-close (Database ejdb) = do
-    result <- decodeRC <$> c_ejdb_close ejdb
-    if result == Ok then free ejdb else fail $ show result
+close (Database ejdbPtr _) = do
+    result <- decodeRC <$> c_ejdb_close ejdbPtr
+    if result == Ok then free ejdbPtr else fail $ show result
 
 getById :: Aeson.FromJSON a => Database -> String -> Int64 -> IO (Maybe a)
-getById (Database ejdbPtr) collection id = do
-    ejdb <- peek ejdbPtr
-    alloca $ \jblPtr ->
-        finally (do
-                     rc <- withCString collection $ \cCollection ->
-                         c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
-                     let result = decodeRC rc
-                     case result of
-                         Ok -> peek jblPtr >>= decode
-                         ErrorNotFound -> return Nothing
-                         _ -> fail $ show result)
-                (c_jbl_destroy jblPtr)
+getById (Database _ ejdb) collection id = alloca $ \jblPtr ->
+    finally (do
+                 rc <- withCString collection $ \cCollection ->
+                     c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
+                 let result = decodeRC rc
+                 case result of
+                     Ok -> peek jblPtr >>= decode
+                     ErrorNotFound -> return Nothing
+                     _ -> fail $ show result)
+            (c_jbl_destroy jblPtr)
 
 getCount :: Database -> Query -> IO Int64
-getCount (Database ejdbPtr) query = do
-    ejdb <- peek ejdbPtr
+getCount (Database _ ejdb) query = do
     jql <- peek query
     alloca $ \countPtr -> c_ejdb_count ejdb jql countPtr 0 >>= checkRC
         >> peek countPtr >>= \(CIntMax int) -> return int
@@ -133,8 +130,7 @@ visitor' ref _ docPtr _ = do
     return 0
 
 exec :: (IORef [a] -> EJDBExecVisitor) -> Database -> Query -> IO [a]
-exec visitor (Database ejdbPtr) query = do
-    ejdb <- peek ejdbPtr
+exec visitor (Database _ ejdb) query = do
     jql <- peek query
     ref <- newIORef []
     visitor <- mkEJDBExecVisitor (visitor ref)
@@ -149,65 +145,51 @@ exec visitor (Database ejdbPtr) query = do
             (freeHaskellFunPtr visitor)
 
 putNew :: Aeson.ToJSON a => Database -> String -> a -> IO Int64
-putNew (Database ejdbPtr) collection obj = do
-    ejdb <- peek ejdbPtr
-    encode obj $ \doc -> withCString collection $ \cCollection ->
-        alloca $ \idPtr -> c_ejdb_put_new ejdb cCollection doc idPtr >>= checkRC
-        >> peek idPtr >>= \(CIntMax int) -> return int
+putNew (Database _ ejdb) collection obj = encode obj $
+    \doc -> withCString collection $ \cCollection -> alloca $ \idPtr ->
+    c_ejdb_put_new ejdb cCollection doc idPtr >>= checkRC >> peek idPtr
+    >>= \(CIntMax int) -> return int
 
 put :: Aeson.ToJSON a => Database -> String -> a -> Int64 -> IO ()
-put (Database ejdbPtr) collection obj id = do
-    ejdb <- peek ejdbPtr
+put (Database _ ejdb) collection obj id =
     encode obj $ \doc -> withCString collection $ \cCollection ->
-        c_ejdb_put ejdb cCollection doc (CIntMax id) >>= checkRC
+    c_ejdb_put ejdb cCollection doc (CIntMax id) >>= checkRC
 
 mergeOrPut :: Aeson.ToJSON a => Database -> String -> a -> Int64 -> IO ()
-mergeOrPut (Database ejdbPtr) collection obj id = do
-    ejdb <- peek ejdbPtr
-    withCString collection $ \cCollection ->
-        BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
-        c_ejdb_merge_or_put ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
+mergeOrPut (Database _ ejdb) collection obj id = withCString collection $
+    \cCollection -> BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
+    c_ejdb_merge_or_put ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
 
 patch :: Aeson.ToJSON a => Database -> String -> a -> Int64 -> IO ()
-patch (Database ejdbPtr) collection obj id = do
-    ejdb <- peek ejdbPtr
-    withCString collection $ \cCollection ->
-        BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
-        c_ejdb_patch ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
+patch (Database _ ejdb) collection obj id = withCString collection $
+    \cCollection -> BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
+    c_ejdb_patch ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
 
 delete :: Database -> String -> Int64 -> IO ()
-delete (Database ejdbPtr) collection id = do
-    ejdb <- peek ejdbPtr
-    withCString collection $ \cCollection ->
-        c_ejdb_del ejdb cCollection (CIntMax id) >>= checkRC
+delete (Database _ ejdb) collection id = withCString collection $
+    \cCollection -> c_ejdb_del ejdb cCollection (CIntMax id) >>= checkRC
 
 ensureCollection :: Database -> String -> IO ()
-ensureCollection (Database ejdbPtr) collection = do
-    ejdb <- peek ejdbPtr
+ensureCollection (Database _ ejdb) collection =
     withCString collection (c_ejdb_ensure_collection ejdb >=> checkRC)
 
 removeCollection :: Database -> String -> IO ()
-removeCollection (Database ejdbPtr) collection = do
-    ejdb <- peek ejdbPtr
+removeCollection (Database _ ejdb) collection =
     withCString collection (c_ejdb_remove_collection ejdb >=> checkRC)
 
 renameCollection :: Database -> String -> String -> IO ()
-renameCollection (Database ejdbPtr) collection newCollection = do
-    ejdb <- peek ejdbPtr
+renameCollection (Database _ ejdb) collection newCollection =
     withCString collection $ \cCollection ->
-        withCString newCollection
-                    (c_ejdb_rename_collection ejdb cCollection >=> checkRC)
+    withCString newCollection
+                (c_ejdb_rename_collection ejdb cCollection >=> checkRC)
 
 getMeta :: Aeson.FromJSON a => Database -> IO (Maybe a)
-getMeta (Database ejdbPtr) = do
-    ejdb <- peek ejdbPtr
-    alloca $ \jblPtr -> c_ejdb_get_meta ejdb jblPtr >>= checkRC
-        >> finally (peek jblPtr >>= decode) (c_jbl_destroy jblPtr)
+getMeta (Database _ ejdb) = alloca $ \jblPtr -> c_ejdb_get_meta ejdb jblPtr
+    >>= checkRC >> finally (peek jblPtr >>= decode) (c_jbl_destroy jblPtr)
 
 ensureIndex :: Database -> String -> String -> [IndexMode] -> IO ()
-ensureIndex (Database ejdbPtr) collection path indexMode = do
-    ejdb <- peek ejdbPtr
+ensureIndex (Database _ ejdb) collection path indexMode =
     withCString collection $ \cCollection -> withCString path $
-        \cPath -> c_ejdb_ensure_index ejdb cCollection cPath mode >>= checkRC
+    \cPath -> c_ejdb_ensure_index ejdb cCollection cPath mode >>= checkRC
   where
     mode = IndexMode.unIndexMode $ IndexMode.combineIndexMode indexMode
