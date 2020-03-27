@@ -1,5 +1,6 @@
 module Database.EJDB2
-    ( Database
+    ( init
+    , Database
     , Options(..)
     , OpenFlags
     , readonlyOpenFlags
@@ -50,6 +51,8 @@ import           Foreign.Marshal.Alloc
 import           Foreign.Ptr
 import           Foreign.Storable
 
+import           Prelude                                hiding ( init )
+
 newtype Database = Database (Ptr EJDB)
 
 type Options = EJDBOpts
@@ -59,9 +62,11 @@ minimalOptions path openFlags =
     EJDBOpts.zero { kv = IWKVOpts.zero { path = Just path, oflags = openFlags }
                   }
 
+init :: IO ()
+init = c_ejdb_init >>= checkRC
+
 open :: Options -> IO Database
 open opts = do
-    c_ejdb_init
     ejdb <- malloc
     alloca $ \optsPtr -> do
         poke optsPtr opts

@@ -2,16 +2,20 @@ module Main ( main ) where
 
 import           CollectionTests
 
+import           Database.EJDB2
+
 import           DeleteTests
 
 import           GetTests
+
+import           Prelude         hiding ( init )
 
 import           PutTests
 
 import           Test.Tasty
 
 main :: IO ()
-main = defaultMain Main.tests
+main = init >> defaultMain Main.tests
 
 tests :: TestTree
 tests = testGroup "ejdb2"

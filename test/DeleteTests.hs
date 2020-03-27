@@ -6,7 +6,7 @@ import           Database.EJDB2
 
 import           Plant
 
-import           Prelude          hiding ( id )
+import           Prelude          hiding ( id, init )
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
