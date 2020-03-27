@@ -8,6 +8,8 @@ import           DeleteTests
 
 import           GetTests
 
+import           IndexTests
+
 import           Prelude         hiding ( init )
 
 import           PutTests
@@ -23,4 +25,5 @@ tests = testGroup "ejdb2"
                   , PutTests.tests
                   , DeleteTests.tests
                   , CollectionTests.tests
+                  , IndexTests.tests
                   ]

@@ -9,6 +9,9 @@ extra-source-files:  CHANGELOG.md
 library
   exposed-modules:     Database.EJDB2
                      , Database.EJDB2.Query
+                     , Database.EJDB2.Meta
+                     , Database.EJDB2.CollectionMeta
+                     , Database.EJDB2.IndexMeta
   other-modules:
       Database.EJDB2.JBL
     , Database.EJDB2.Bindings.EJDB2
@@ -28,7 +31,7 @@ library
                      , aeson ==1.4.6.0
                      , unordered-containers ==0.2.10.0
   build-tool-depends:  hsc2hs:hsc2hs
-  extra-libraries: ejdb2
+  extra-libraries:     ejdb2
   hs-source-dirs:      src
   default-language:    Haskell2010
 
@@ -44,6 +47,7 @@ test-suite ejdb2haskell-test
                        PutTests
                        DeleteTests
                        CollectionTests
+                       IndexTests
   build-depends:       base ^>=4.12.0.0
                      , tasty ==1.2.3
                      , tasty-hunit ==0.10.0.2

@@ -21,6 +21,7 @@ module Database.EJDB2
     , ensureCollection
     , removeCollection
     , renameCollection
+    , getMeta
     ) where
 
 import           Control.Exception
@@ -186,3 +187,9 @@ renameCollection (Database ejdbPtr) collection newCollection = do
     withCString collection $ \cCollection ->
         withCString newCollection
                     (c_ejdb_rename_collection ejdb cCollection >=> checkRC)
+
+getMeta :: Aeson.FromJSON a => Database -> IO (Maybe a)
+getMeta (Database ejdbPtr) = do
+    ejdb <- peek ejdbPtr
+    alloca $ \jblPtr -> c_ejdb_get_meta ejdb jblPtr >>= checkRC
+        >> finally (peek jblPtr >>= decode) (c_jbl_destroy jblPtr)
