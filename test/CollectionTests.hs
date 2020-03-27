@@ -7,7 +7,7 @@ import qualified Database.EJDB2.Query as Query
 
 import           Plant
 
-import           Prelude              hiding ( id, init )
+import           Prelude              hiding ( id )
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
