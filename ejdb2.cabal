@@ -1,10 +1,21 @@
 cabal-version:       2.4
 name:                ejdb2
+category:            Database
+description:         Binding to EJDB2 C library, an embedded JSON noSQL database. Please see the README on GitHub at <https://github.com/cescobaz/ejdb2haskell#readme>
+synopsis:            Binding to EJDB2 C library, an embedded JSON noSQL database
 version:             0.1.0.0
+license:             MIT
 license-file:        LICENSE
+homepage:            https://github.com/cescobaz/ejdb2haskell#readme
+bug-reports:         https://github.com/cescobaz/ejdb2haskell/issues
+copyright:           2020 Francesco Burelli
 author:              Francesco Burelli
-maintainer:          francesco.burelli@gmail.com
+maintainer:          francesco.burelli@protonmail.com
 extra-source-files:  CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/cescobaz/ejdb2haskell
 
 library
   exposed-modules:     Database.EJDB2
