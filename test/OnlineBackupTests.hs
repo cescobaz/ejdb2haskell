@@ -22,12 +22,11 @@ testDatabaseOpts :: Options
 testDatabaseOpts =
     minimalOptions "./test/onlinebackup-db" [ truncateOpenFlags ]
 
-backupFilePath :: IO String
-backupFilePath = makeAbsolute "./test/onlinebackup-backup-db"
+backupFilePath :: String
+backupFilePath = "./test/onlinebackup-backup-db"
 
 onlineBackupTest :: IO Database -> TestTree
 onlineBackupTest databaseIO = testCase "onlineBackupTest" $ do
-    backupFilePath <- backupFilePath
     doesFileExist backupFilePath
         >>= \exists -> when exists $ removeFile backupFilePath
     database <- databaseIO
