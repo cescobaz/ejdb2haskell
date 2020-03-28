@@ -68,4 +68,4 @@ foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_get_meta" c_ejdb_get_meta
     :: EJDB -> Ptr JBL -> IO RC
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_online_backup" c_ejdb_online_backup
-    :: EJDB -> CString -> Ptr CUIntMax -> IO RC
+    :: EJDB -> Ptr CUIntMax -> CString -> IO RC

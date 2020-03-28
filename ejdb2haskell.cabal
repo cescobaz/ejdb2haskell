@@ -57,5 +57,4 @@ test-suite ejdb2haskell-test
                      , unordered-containers ==0.2.10.0
                      , vector ==0.12.1.2
                      , directory ==1.3.6.0
-                     , unix-time ==0.4.7
                      , ejdb2

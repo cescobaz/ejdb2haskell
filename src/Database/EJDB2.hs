@@ -86,7 +86,7 @@ open opts = do
         poke optsPtr opts
         result <- decodeRC <$> c_ejdb_open optsPtr ejdbPtr
         if result == Ok
-            then peek ejdbPtr >>= return . Database ejdbPtr
+            then Database ejdbPtr <$> peek ejdbPtr
             else free ejdbPtr >> fail (show result)
 
 close :: Database -> IO ()
@@ -206,5 +206,5 @@ removeIndex (Database _ ejdb) collection path indexMode =
 
 onlineBackup :: Database -> String -> IO Word64
 onlineBackup (Database _ ejdb) filePath = withCString filePath $ \cFilePath ->
-    alloca $ \timestampPtr -> c_ejdb_online_backup ejdb cFilePath timestampPtr
+    alloca $ \timestampPtr -> c_ejdb_online_backup ejdb timestampPtr cFilePath
     >>= checkRC >> peek timestampPtr >>= \(CUIntMax t) -> return t

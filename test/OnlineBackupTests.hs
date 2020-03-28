@@ -3,8 +3,6 @@ module OnlineBackupTests ( tests ) where
 import           Control.Exception
 import           Control.Monad
 
-import           Data.UnixTime
-
 import           Database.EJDB2
 
 import           Plant
@@ -34,10 +32,7 @@ onlineBackupTest databaseIO = testCase "onlineBackupTest" $ do
         >>= \exists -> when exists $ removeFile backupFilePath
     database <- databaseIO
     id <- putNew database "plants" plant
-    time <- onlineBackup database backupFilePath
-    now <- getUnixTime
-    putStrLn $ show time
-    putStrLn $ show now
+    _ <- onlineBackup database backupFilePath
     backupFileExists <- doesFileExist backupFilePath
     backupFileExists @? "backup file exists"
     databaseLast <- open $ minimalOptions backupFilePath [ readonlyOpenFlags ]
