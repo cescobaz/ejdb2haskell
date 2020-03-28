@@ -29,6 +29,7 @@ module Database.EJDB2
     , i64IndexMode
     , ensureIndex
     , removeIndex
+    , onlineBackup
     ) where
 
 import           Control.Exception
@@ -38,6 +39,7 @@ import qualified Data.Aeson                              as Aeson
 import qualified Data.ByteString                         as BS
 import           Data.IORef
 import           Data.Int
+import           Data.Word
 
 import           Database.EJDB2.Bindings.EJDB2
 import           Database.EJDB2.Bindings.IW
@@ -201,3 +203,8 @@ removeIndex (Database _ ejdb) collection path indexMode =
     \cPath -> c_ejdb_remove_index ejdb cCollection cPath mode >>= checkRC
   where
     mode = IndexMode.unIndexMode $ IndexMode.combineIndexMode indexMode
+
+onlineBackup :: Database -> String -> IO Word64
+onlineBackup (Database _ ejdb) filePath = withCString filePath $ \cFilePath ->
+    alloca $ \timestampPtr -> c_ejdb_online_backup ejdb cFilePath timestampPtr
+    >>= checkRC >> peek timestampPtr >>= \(CUIntMax t) -> return t
