@@ -2,6 +2,7 @@ module Database.EJDB2
     ( init
     , Database
     , Options(..)
+    , KV.KVOptions(..)
     , KV.OpenFlags
     , KV.readonlyOpenFlags
     , KV.truncateOpenFlags
@@ -48,10 +49,10 @@ import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc   as EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec  as EJDBExec
 import           Database.EJDB2.Bindings.Types.EJDBOpts  as EJDBOpts
-import qualified Database.EJDB2.Bindings.Types.IWKVOpts  as KV
-                 ( OpenFlags, Options(..), noTrimOnCloseOpenFlags
+import qualified Database.EJDB2.Bindings.Types.KV  as KV
+                 ( KVOptions(..), OpenFlags, noTrimOnCloseOpenFlags
                  , readonlyOpenFlags, truncateOpenFlags )
-import qualified Database.EJDB2.Bindings.Types.IWKVOpts  as KV
+import qualified Database.EJDB2.Bindings.Types.KV  as KV
 import           Database.EJDB2.Bindings.Types.IndexMode
                  ( IndexMode, f64IndexMode, i64IndexMode, strIndexMode
                  , uniqueIndexMode )

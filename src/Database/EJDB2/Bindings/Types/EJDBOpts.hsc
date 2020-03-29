@@ -9,12 +9,12 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import qualified Database.EJDB2.Bindings.Types.IWKVOpts as IWKVOpts
+import qualified Database.EJDB2.Bindings.Types.KV as KV
 import qualified Database.EJDB2.Bindings.Types.EJDBHttp as EJDBHttp
 
 #include <ejdb2/ejdb2.h>
 
-data Options = Options { kv :: !IWKVOpts.Options -- ^ IWKV storage options
+data Options = Options { kv :: !KV.KVOptions -- ^ IWKV storage options
                        , http :: !EJDBHttp.EJDBHttp -- ^ HTTP/Websocket server options
                        , noWal :: !Bool -- ^ Do not use write-ahead-log. Default: false
                        , sortBufferSz :: !Word32 -- ^ Max sorting buffer size. If exceeded an overflow temp file for sorted data will created. Default 16Mb, min: 1Mb
@@ -22,7 +22,7 @@ data Options = Options { kv :: !IWKVOpts.Options -- ^ IWKV storage options
                        }
 
 zero :: Options
-zero = Options { kv = IWKVOpts.zero
+zero = Options { kv = KV.zero
                , http = EJDBHttp.zero
                , noWal = False
                , sortBufferSz = 0
@@ -30,12 +30,12 @@ zero = Options { kv = IWKVOpts.zero
                }
 
 data OptionsB = OptionsB { options :: Options
-                         , kvB :: !IWKVOpts.OptionsB
+                         , kvB :: !KV.KVOptionsB
                          }
 
 build :: Options -> IO OptionsB
 build options = do
-        kvB <- IWKVOpts.build (kv options)
+        kvB <- KV.build (kv options)
         return $ OptionsB options kvB
 
 instance Storable OptionsB where
@@ -43,7 +43,7 @@ instance Storable OptionsB where
         alignment _ = #{alignment EJDB_OPTS}
         peek ptr = do
            kvB <- #{peek EJDB_OPTS, kv} ptr
-           let kv = IWKVOpts.options kvB
+           let kv = KV.options kvB
            http <- #{peek EJDB_OPTS, http} ptr
            (CBool no_wal) <- #{peek EJDB_OPTS, no_wal} ptr
            (CUInt sort_buffer_sz) <- #{peek EJDB_OPTS, sort_buffer_sz} ptr

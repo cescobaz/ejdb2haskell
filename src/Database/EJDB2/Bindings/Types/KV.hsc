@@ -1,13 +1,13 @@
 {-# LANGUAGE CPP #-}
 
-module Database.EJDB2.Bindings.Types.IWKVOpts
+module Database.EJDB2.Bindings.Types.KV
         ( OpenFlags
         , readonlyOpenFlags
         , truncateOpenFlags
         , noTrimOnCloseOpenFlags
-        , Options(..)
+        , KVOptions(..)
         , zero
-        , OptionsB
+        , KVOptionsB
         , build
         , options
         ) where
@@ -39,8 +39,8 @@ unCombineOpenFlags (OpenFlags (CUChar oflags)) = filter f allOpenFlags
           where
             f = \(OpenFlags (CUChar value)) -> value .&. oflags /= 0
 
-data Options =
-    Options { path :: Maybe String -- ^ Path to database file
+data KVOptions =
+    KVOptions { path :: Maybe String -- ^ Path to database file
             , randomSeed :: !Word32 -- ^ Random seed used for iwu random generator
             , fmtVersion :: !Int32 -- ^ Database storage format version. Leave it as zero for the latest supported format. Used only for newly created databases
             , oflags :: ![OpenFlags]
@@ -48,8 +48,8 @@ data Options =
             , wal :: !IWKVWalOpts.IWKVWalOpts
             }
 
-zero :: Options
-zero = Options { path = Nothing
+zero :: KVOptions
+zero = KVOptions { path = Nothing
                , randomSeed = 0
                , fmtVersion = 0
                , oflags = []
@@ -57,20 +57,20 @@ zero = Options { path = Nothing
                , wal = IWKVWalOpts.zero
                }
 
-data OptionsB =
-    OptionsB { options :: Options
+data KVOptionsB =
+    KVOptionsB { options :: KVOptions
              , pathPtr :: ForeignPtr CChar
              }
 
-build :: Options -> IO OptionsB
+build :: KVOptions -> IO KVOptionsB
 build options = do
         pathPtr <- maybeNew newCString (path options)
         pathFPtr <- newForeignPtr finalizerFree pathPtr
-        return OptionsB { options = options
+        return KVOptionsB { options = options
                         , pathPtr = pathFPtr
                         }
 
-instance Storable OptionsB where
+instance Storable KVOptionsB where
         sizeOf _ = #{size IWKV_OPTS}
         alignment _  = #{alignment IWKV_OPTS}
         peek ptr = do
@@ -82,15 +82,15 @@ instance Storable OptionsB where
                 oflags <- #{peek IWKV_OPTS, oflags} ptr
                 file_lock_fail_fast <- #{peek IWKV_OPTS, file_lock_fail_fast} ptr
                 wal <- #{peek IWKV_OPTS, wal} ptr
-                let options = Options 
+                let options = KVOptions 
                                 path
                                 random_seed
                                 fmt_version
                                 (unCombineOpenFlags $ OpenFlags oflags)
                                 file_lock_fail_fast
                                 wal
-                return $ OptionsB options pathFPtr
-        poke ptr (OptionsB (Options path random_seed fmt_version oflags file_lock_fail_fast wal) pathPtr) = do
+                return $ KVOptionsB options pathFPtr
+        poke ptr (KVOptionsB (KVOptions path random_seed fmt_version oflags file_lock_fail_fast wal) pathPtr) = do
                 withForeignPtr pathPtr $ \cPath ->
                   #{poke IWKV_OPTS, path} ptr cPath
                 #{poke IWKV_OPTS, random_seed} ptr random_seed
