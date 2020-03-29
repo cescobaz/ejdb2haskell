@@ -2,10 +2,10 @@ module Database.EJDB2
     ( init
     , Database
     , Options(..)
-    , OpenFlags
-    , readonlyOpenFlags
-    , truncateOpenFlags
-    , noTrimOnCloseOpenFlags
+    , KV.OpenFlags
+    , KV.readonlyOpenFlags
+    , KV.truncateOpenFlags
+    , KV.noTrimOnCloseOpenFlags
     , minimalOptions
     , open
     , close
@@ -48,10 +48,10 @@ import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc   as EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec  as EJDBExec
 import           Database.EJDB2.Bindings.Types.EJDBOpts  as EJDBOpts
-import           Database.EJDB2.Bindings.Types.IWKVOpts
-                 ( OpenFlags, noTrimOnCloseOpenFlags, readonlyOpenFlags
-                 , truncateOpenFlags )
-import           Database.EJDB2.Bindings.Types.IWKVOpts  as IWKVOpts
+import qualified Database.EJDB2.Bindings.Types.IWKVOpts  as KV
+                 ( OpenFlags, Options(..), noTrimOnCloseOpenFlags
+                 , readonlyOpenFlags, truncateOpenFlags )
+import qualified Database.EJDB2.Bindings.Types.IWKVOpts  as KV
 import           Database.EJDB2.Bindings.Types.IndexMode
                  ( IndexMode, f64IndexMode, i64IndexMode, strIndexMode
                  , uniqueIndexMode )
@@ -59,6 +59,7 @@ import qualified Database.EJDB2.Bindings.Types.IndexMode as IndexMode
 import           Database.EJDB2.JBL
 import           Database.EJDB2.Query
 
+import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 import           Foreign.Marshal.Alloc
@@ -69,11 +70,9 @@ import           Prelude                                 hiding ( init )
 
 data Database = Database (Ptr EJDB) EJDB
 
-type Options = EJDBOpts
-
-minimalOptions :: String -> [OpenFlags] -> Options
+minimalOptions :: String -> [KV.OpenFlags] -> Options
 minimalOptions path openFlags =
-    EJDBOpts.zero { kv = IWKVOpts.zero { path = Just path, oflags = openFlags }
+    EJDBOpts.zero { kv = KV.zero { KV.path = Just path, KV.oflags = openFlags }
                   }
 
 {-|
@@ -92,8 +91,8 @@ init = c_ejdb_init >>= checkRC
 open :: Options -> IO Database
 open opts = do
     ejdbPtr <- malloc
-    alloca $ \optsPtr -> do
-        poke optsPtr opts
+    optsB <- build opts
+    with optsB $ \optsPtr -> do
         result <- decodeRC <$> c_ejdb_open optsPtr ejdbPtr
         if result == Ok
             then Database ejdbPtr <$> peek ejdbPtr
@@ -160,12 +159,8 @@ exec visitor (Database _ ejdb) query = do
     jql <- peek query
     ref <- newIORef []
     visitor <- mkEJDBExecVisitor (visitor ref)
-    finally (alloca $ \execPtr -> do
-                 let exec = EJDBExec.zero { db = ejdb
-                                          , q = jql
-                                          , EJDBExec.visitor = visitor
-                                          }
-                 poke execPtr exec
+    let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
+    finally (with exec $ \execPtr -> do
                  c_ejdb_exec execPtr >>= checkRC
                  reverse <$> readIORef ref)
             (freeHaskellFunPtr visitor)

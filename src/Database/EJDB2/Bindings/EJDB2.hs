@@ -17,7 +17,7 @@ import           Foreign.C.Types
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_init" c_ejdb_init :: IO RC
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_open" c_ejdb_open
-    :: Ptr EJDBOpts -> Ptr EJDB -> IO RC
+    :: Ptr OptionsB -> Ptr EJDB -> IO RC
 
 foreign import ccall unsafe "ejdb2/ejdb2.h ejdb_close" c_ejdb_close
     :: Ptr EJDB -> IO RC
