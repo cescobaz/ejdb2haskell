@@ -50,17 +50,17 @@ data KVOptions =
 
 zero :: KVOptions
 zero = KVOptions { path = Nothing
-               , randomSeed = 0
-               , fmtVersion = 0
-               , oflags = []
-               , fileLockFailFast = False
-               , wal = IWKVWalOpts.zero
-               }
+                 , randomSeed = 0
+                 , fmtVersion = 0
+                 , oflags = []
+                 , fileLockFailFast = False
+                 , wal = IWKVWalOpts.zero
+                 }
 
 data KVOptionsB =
     KVOptionsB { options :: KVOptions
-             , pathPtr :: ForeignPtr CChar
-             }
+               , pathPtr :: ForeignPtr CChar
+               }
 
 build :: KVOptions -> IO KVOptionsB
 build options = do

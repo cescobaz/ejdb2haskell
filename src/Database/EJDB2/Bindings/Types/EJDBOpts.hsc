@@ -15,7 +15,7 @@ import qualified Database.EJDB2.Bindings.Types.EJDBHttp as EJDBHttp
 #include <ejdb2/ejdb2.h>
 
 data Options = Options { kv :: !KV.KVOptions -- ^ IWKV storage options
-                       , http :: !EJDBHttp.EJDBHttp -- ^ HTTP/Websocket server options
+                       , http :: !EJDBHttp.HTTPOptions -- ^ HTTP/Websocket server options
                        , noWal :: !Bool -- ^ Do not use write-ahead-log. Default: false
                        , sortBufferSz :: !Word32 -- ^ Max sorting buffer size. If exceeded an overflow temp file for sorted data will created. Default 16Mb, min: 1Mb
                        , documentBufferSz :: !Word32 -- ^ Initial size of buffer in bytes used to process/store document during query execution. Default 64Kb, min: 16Kb
@@ -31,12 +31,14 @@ zero = Options { kv = KV.zero
 
 data OptionsB = OptionsB { options :: Options
                          , kvB :: !KV.KVOptionsB
+                         , httpB :: !EJDBHttp.HTTPOptionsB
                          }
 
 build :: Options -> IO OptionsB
 build options = do
         kvB <- KV.build (kv options)
-        return $ OptionsB options kvB
+        httpB <- EJDBHttp.build (http options)
+        return $ OptionsB options kvB httpB
 
 instance Storable OptionsB where
         sizeOf _ = #{size EJDB_OPTS}
@@ -44,14 +46,15 @@ instance Storable OptionsB where
         peek ptr = do
            kvB <- #{peek EJDB_OPTS, kv} ptr
            let kv = KV.options kvB
-           http <- #{peek EJDB_OPTS, http} ptr
+           httpB <- #{peek EJDB_OPTS, http} ptr
+           let http = EJDBHttp.options httpB
            (CBool no_wal) <- #{peek EJDB_OPTS, no_wal} ptr
            (CUInt sort_buffer_sz) <- #{peek EJDB_OPTS, sort_buffer_sz} ptr
            (CUInt document_buffer_sz) <- #{peek EJDB_OPTS, document_buffer_sz} ptr
-           return $ OptionsB (Options kv http (toBool no_wal) sort_buffer_sz document_buffer_sz) kvB
-        poke ptr (OptionsB (Options _ http noWal sort_buffer_sz document_buffer_sz) kvB) = do
+           return $ OptionsB (Options kv http (toBool no_wal) sort_buffer_sz document_buffer_sz) kvB httpB
+        poke ptr (OptionsB (Options _ http noWal sort_buffer_sz document_buffer_sz) kvB httpB) = do
            #{poke EJDB_OPTS, kv} ptr kvB
-           #{poke EJDB_OPTS, http} ptr http
+           #{poke EJDB_OPTS, http} ptr httpB
            #{poke EJDB_OPTS, no_wal} ptr (CBool $ fromBool noWal)
            #{poke EJDB_OPTS, sort_buffer_sz} ptr (CUInt sort_buffer_sz)
            #{poke EJDB_OPTS, document_buffer_sz} ptr (CUInt document_buffer_sz)
