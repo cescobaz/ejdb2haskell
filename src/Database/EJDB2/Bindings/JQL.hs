@@ -19,3 +19,6 @@ foreign import ccall unsafe "ejdb2/jql.h jql_set_bool" c_jql_set_bool
 
 foreign import ccall unsafe "ejdb2/jql.h jql_destroy" c_jql_destroy
     :: Ptr JQL -> IO ()
+
+foreign import ccall "finalizer.h &finalizerJQL" p_finalizerJQL
+    :: FunPtr (Ptr JQL -> IO ())

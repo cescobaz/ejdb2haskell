@@ -12,25 +12,26 @@ import           Foreign.Marshal.Alloc
 
 import           System.IO.Unsafe
 
-type Query = (Ptr JQL)
+data Query = Query { jql :: JQL, jqlPtr :: ForeignPtr JQL }
 
 -- | Create query object from specified text query. Collection must be specified in query.
 fromString :: String -- ^ Query text
            -> IO Query
 fromString string = do
     jqlPtr <- malloc
-    withCString string $ \cString -> c_jql_create jqlPtr nullPtr cString
-        >>= checkRCFinally (free jqlPtr) >> return jqlPtr
+    withCString string $ \cString -> do
+        c_jql_create jqlPtr nullPtr cString >>= checkRC
+        jql <- peek jqlPtr
+        jqlFPtr <- newForeignPtr p_finalizerJQL jqlPtr
+        return $ Query jql jqlFPtr
 
 -- | Bind bool to query placeholder
 setBool :: Bool
         -> String -- ^ Placeholder
         -> Query
         -> IO ()
-setBool bool placeholder jqlPtr = do
-    jql <- peek jqlPtr
+setBool bool placeholder (Query jql _) =
     withCString placeholder $ \cPlaceholder ->
-        c_jql_set_bool jql cPlaceholder 0 (CBool (Bool.bool 0 1 bool))
-        >>= checkRC
+    c_jql_set_bool jql cPlaceholder 0 (CBool (Bool.bool 0 1 bool)) >>= checkRC
 
 
