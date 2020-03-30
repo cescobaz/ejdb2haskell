@@ -14,13 +14,19 @@ import           System.IO.Unsafe
 
 type Query = (Ptr JQL)
 
-fromString :: String -> IO Query
+-- | Create query object from specified text query. Collection must be specified in query.
+fromString :: String -- ^ Query text
+           -> IO Query
 fromString string = do
     jqlPtr <- malloc
     withCString string $ \cString -> c_jql_create jqlPtr nullPtr cString
         >>= checkRCFinally (free jqlPtr) >> return jqlPtr
 
-setBool :: Bool -> String -> Query -> IO ()
+-- | Bind bool to query placeholder
+setBool :: Bool
+        -> String -- ^ Placeholder
+        -> Query
+        -> IO ()
 setBool bool placeholder jqlPtr = do
     jql <- peek jqlPtr
     withCString placeholder $ \cPlaceholder ->

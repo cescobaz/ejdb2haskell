@@ -10,6 +10,7 @@ import           Database.EJDB2.IndexMeta
 
 import           GHC.Generics
 
+-- | Metadata about collection.
 data CollectionMeta =
     CollectionMeta { name    :: String        -- ^ Collection name
                    , dbid    :: Int64         -- ^ Collection database ID

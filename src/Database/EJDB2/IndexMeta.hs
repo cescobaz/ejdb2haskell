@@ -7,6 +7,7 @@ import           Data.Int
 
 import           GHC.Generics
 
+-- | Metadata abount collection index.
 data IndexMeta =
     IndexMeta { ptr  :: String     -- ^ rfc6901 JSON pointer to indexed field
               , mode :: Int64      -- ^ Index mode

@@ -49,14 +49,14 @@ import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc   as EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec  as EJDBExec
 import           Database.EJDB2.Bindings.Types.EJDBOpts  as EJDBOpts
-import qualified Database.EJDB2.Bindings.Types.KV  as KV
-                 ( KVOptions(..), OpenFlags, noTrimOnCloseOpenFlags
-                 , readonlyOpenFlags, truncateOpenFlags )
-import qualified Database.EJDB2.Bindings.Types.KV  as KV
 import           Database.EJDB2.Bindings.Types.IndexMode
                  ( IndexMode, f64IndexMode, i64IndexMode, strIndexMode
                  , uniqueIndexMode )
 import qualified Database.EJDB2.Bindings.Types.IndexMode as IndexMode
+import qualified Database.EJDB2.Bindings.Types.KV        as KV
+                 ( KVOptions(..), OpenFlags, noTrimOnCloseOpenFlags
+                 , readonlyOpenFlags, truncateOpenFlags )
+import qualified Database.EJDB2.Bindings.Types.KV        as KV
 import           Database.EJDB2.JBL
 import           Database.EJDB2.Query
 
@@ -69,9 +69,14 @@ import           Foreign.Storable
 
 import           Prelude                                 hiding ( init )
 
+-- | Reference to database. You can create it by 'open'.
 data Database = Database (Ptr EJDB) EJDB
 
-minimalOptions :: String -> [KV.OpenFlags] -> Options
+-- | Create minimal 'Options' for opening a database: just path to file and opening mode.
+minimalOptions :: String -- ^ Database file path 
+               -> [KV.OpenFlags] -- ^ Open mode
+               -> Options -- ^ Options to use in 'open'
+
 minimalOptions path openFlags =
     EJDBOpts.zero { kv = KV.zero { KV.path = Just path, KV.oflags = openFlags }
                   }
@@ -88,6 +93,8 @@ init = c_ejdb_init >>= checkRC
   Open storage file.
 
   Storage can be opened only by one single process at time.
+
+  /Remember to release database by 'close' when database is no longer required./
 -}
 open :: Options -> IO Database
 open opts = do
@@ -107,9 +114,7 @@ close (Database ejdbPtr _) = do
     result <- decodeRC <$> c_ejdb_close ejdbPtr
     if result == Ok then free ejdbPtr else fail $ show result
 
-{-|
-  Retrieve document identified by given id from collection.
--}
+-- | Retrieve document identified by given id from collection.
 getById :: Aeson.FromJSON a
         => Database
         -> String -- ^ Collection name
@@ -126,6 +131,7 @@ getById (Database _ ejdb) collection id = alloca $ \jblPtr ->
                      _ -> fail $ show result)
             (c_jbl_destroy jblPtr)
 
+-- | Executes a given query and returns the number of documents.
 getCount :: Database -> Query -> IO Int64
 getCount (Database _ ejdb) query = do
     jql <- peek query
@@ -145,6 +151,9 @@ visitor ref _ docPtr _ = do
     modifyIORef' ref $ \list -> (fromIntegral $ EJDBDoc.id doc, value) : list
     return 0
 
+{-|
+  Executes a given query and builds a query result as list of documents with id injected as attribute.
+-}
 getList' :: Aeson.FromJSON a => Database -> Query -> IO [Maybe a]
 getList' = exec Database.EJDB2.visitor'
 
@@ -304,12 +313,12 @@ removeIndex (Database _ ejdb) collection path indexMode =
     mode = IndexMode.unIndexMode $ IndexMode.combineIndexMode indexMode
 
 {-|
-  Creates an online database backup image and copies it into the specified `target_file`.
+  Creates an online database backup image and copies it into the specified target file.
   During online backup phase read/write database operations are allowed and not
-  blocked for significant amount of time. Backup finish time is placed into `ts`
+  blocked for significant amount of time. Backup finish time is placed into result
   as number of milliseconds since epoch.
 
-  Online backup guaranties what all records before `ts` timestamp will
+  Online backup guaranties what all records before timestamp will
   be stored in backup image. Later, online backup image can be
   opened as ordinary database file.
 

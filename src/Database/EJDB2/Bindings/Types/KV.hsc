@@ -20,13 +20,19 @@ import qualified Database.EJDB2.Bindings.Types.IWKVWalOpts as IWKVWalOpts
 
 
 #include <ejdb2/ejdb2.h>
+-- | Database file open modes.
 newtype OpenFlags = OpenFlags { unOpenFlags :: CUChar }
 
-#{enum OpenFlags, OpenFlags
-  , readonlyOpenFlags         = IWKV_RDONLY
-  , truncateOpenFlags         = IWKV_TRUNC
-  , noTrimOnCloseOpenFlags    = IWKV_NO_TRIM_ON_CLOSE
-  }
+-- | Open storage file in read-only mode.
+readonlyOpenFlags :: OpenFlags
+readonlyOpenFlags         = OpenFlags #{const IWKV_RDONLY}
+
+-- | Truncate storage file on open.
+truncateOpenFlags :: OpenFlags
+truncateOpenFlags         = OpenFlags #{const IWKV_TRUNC}
+
+noTrimOnCloseOpenFlags :: OpenFlags
+noTrimOnCloseOpenFlags    = OpenFlags #{const IWKV_NO_TRIM_ON_CLOSE}
 
 allOpenFlags :: [OpenFlags]
 allOpenFlags = [readonlyOpenFlags, truncateOpenFlags, noTrimOnCloseOpenFlags]
@@ -43,7 +49,7 @@ data KVOptions =
     KVOptions { path :: Maybe String -- ^ Path to database file
             , randomSeed :: !Word32 -- ^ Random seed used for iwu random generator
             , fmtVersion :: !Int32 -- ^ Database storage format version. Leave it as zero for the latest supported format. Used only for newly created databases
-            , oflags :: ![OpenFlags]
+            , oflags :: ![OpenFlags] -- ^ Database file open modes
             , fileLockFailFast :: !Bool -- ^ Do not wait and raise error if database is locked by another process
             , wal :: !IWKVWalOpts.IWKVWalOpts
             }
