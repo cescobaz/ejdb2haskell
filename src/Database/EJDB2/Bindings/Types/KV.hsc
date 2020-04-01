@@ -16,7 +16,7 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import qualified Database.EJDB2.Bindings.Types.IWKVWalOpts as IWKVWalOpts
+import qualified Database.EJDB2.Bindings.Types.WALOptions as WALOptions
 
 
 #include <ejdb2/ejdb2.h>
@@ -51,7 +51,7 @@ data KVOptions =
             , fmtVersion :: !Int32 -- ^ Database storage format version. Leave it as zero for the latest supported format. Used only for newly created databases
             , oflags :: ![OpenFlags] -- ^ Database file open modes
             , fileLockFailFast :: !Bool -- ^ Do not wait and raise error if database is locked by another process
-            , wal :: !IWKVWalOpts.IWKVWalOpts
+            , wal :: !WALOptions.WALOptions
             }
 
 zero :: KVOptions
@@ -60,7 +60,7 @@ zero = KVOptions { path = Nothing
                  , fmtVersion = 0
                  , oflags = []
                  , fileLockFailFast = False
-                 , wal = IWKVWalOpts.zero
+                 , wal = WALOptions.zero
                  }
 
 data KVOptionsB =

@@ -7,7 +7,6 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import           Database.EJDB2.Bindings.Types.IWKVWalOpts as IWKVWalOpts
 import           Database.EJDB2.Bindings.Types.C.String
 
 
