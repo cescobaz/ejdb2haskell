@@ -46,6 +46,7 @@ library
                      , unordered-containers ==0.2.10.0
   build-tool-depends:  hsc2hs:hsc2hs
   extra-libraries:     ejdb2
+  pkgconfig-depends:   libejdb2
   c-sources:           cbits/finalizer.c
   install-includes:    finalizer.h
   include-dirs:        cbits
