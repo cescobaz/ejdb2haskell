@@ -12,20 +12,21 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 import           Foreign.Marshal.Utils
+import           Data.Int
 import           Database.EJDB2.Bindings.Types.C.String
 
 #include <ejdb2/ejdb2.h>
 
--- | EJDB HTTP/Websocket Server options.
-data HTTPOptions = HTTPOptions { enabled :: !Bool -- ^ If HTTP/Websocket endpoint enabled. Default: false
-                               , port :: !CInt -- ^ Listen port number, required
-                               , bind :: Maybe String -- ^ Listen IP/host. Default: `localhost`
-                               , accessToken :: Maybe String -- ^ Server access token passed in `X-Access-Token` header. Default: zero
-                               -- | Block 'open' thread until http service finished.
-                               -- Otherwise HTTP server will be started in background.
-                               , blocking :: !Bool
+-- | EJDB HTTP\/Websocket Server options.
+data HTTPOptions = HTTPOptions { enabled :: !Bool -- ^ If HTTP\/Websocket endpoint enabled. Default: false
+                               , port :: !Int32 -- ^ Listen port number, required
+                               , bind :: Maybe String -- ^ Listen IP\/host. Default: /localhost/
+                               , accessToken :: Maybe String -- ^ Server access token passed in /X-Access-Token/ header. Default: zero
+                               , blocking :: !Bool -- ^ Block 'open' thread until http service finished.
+-- Otherwise HTTP server will be started in background.
+
                                , readAnon :: !Bool -- ^ Allow anonymous read-only database access
-                               , maxBodySize :: !CSize -- ^ Maximum WS/HTTP API body size. Default: 64Mb, Min: 512K
+                               , maxBodySize :: !Word64 -- ^ Maximum WS\/HTTP API body size. Default: 64Mb, Min: 512K
                                }
 
 -- | Create default 'HTTPOptions'

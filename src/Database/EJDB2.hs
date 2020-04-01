@@ -7,6 +7,7 @@ module Database.EJDB2
     , KV.readonlyOpenFlags
     , KV.truncateOpenFlags
     , KV.noTrimOnCloseOpenFlags
+    , HTTPOptions(..)
     , minimalOptions
     , open
     , close
@@ -48,6 +49,7 @@ import           Database.EJDB2.Bindings.JBL
 import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc   as EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec  as EJDBExec
+import           Database.EJDB2.Bindings.Types.EJDBHttp  ( HTTPOptions(..) )
 import           Database.EJDB2.Bindings.Types.EJDBOpts  as EJDBOpts
 import           Database.EJDB2.Bindings.Types.IndexMode
                  ( IndexMode, f64IndexMode, i64IndexMode, strIndexMode
