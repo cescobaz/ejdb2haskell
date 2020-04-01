@@ -56,9 +56,6 @@ import           Database.EJDB2.Bindings.Types.IndexMode
                  , uniqueIndexMode )
 import qualified Database.EJDB2.Bindings.Types.IndexMode as IndexMode
 import qualified Database.EJDB2.Bindings.Types.KV        as KV
-                 ( KVOptions(..), OpenFlags, noTrimOnCloseOpenFlags
-                 , readonlyOpenFlags, truncateOpenFlags )
-import qualified Database.EJDB2.Bindings.Types.KV        as KV
 import           Database.EJDB2.JBL
 import           Database.EJDB2.Query
 
