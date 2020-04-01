@@ -14,6 +14,7 @@ maintainer:          francesco.burelli@protonmail.com
 extra-source-files:  CHANGELOG.md
                      cbits/finalizer.h
                      cbits/finalizer.c
+build-type:          Configure
 
 source-repository head
   type: git
