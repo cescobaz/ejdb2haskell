@@ -11,25 +11,31 @@ module Database.EJDB2.Bindings.Types.EJDBHttp
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
+import           Foreign.Marshal.Utils
 import           Database.EJDB2.Bindings.Types.C.String
 
 #include <ejdb2/ejdb2.h>
 
-data HTTPOptions = HTTPOptions { enabled :: !CBool
-                         , port :: !CInt
-                         , bind :: Maybe String
-                         , accessToken :: Maybe String
-                         , blocking :: !CBool
-                         , readAnon :: !CBool
-                         , maxBodySize :: !CSize }
+-- | EJDB HTTP/Websocket Server options.
+data HTTPOptions = HTTPOptions { enabled :: !Bool -- ^ If HTTP/Websocket endpoint enabled. Default: false
+                               , port :: !CInt -- ^ Listen port number, required
+                               , bind :: Maybe String -- ^ Listen IP/host. Default: `localhost`
+                               , accessToken :: Maybe String -- ^ Server access token passed in `X-Access-Token` header. Default: zero
+                               -- | Block 'open' thread until http service finished.
+                               -- Otherwise HTTP server will be started in background.
+                               , blocking :: !Bool
+                               , readAnon :: !Bool -- ^ Allow anonymous read-only database access
+                               , maxBodySize :: !CSize -- ^ Maximum WS/HTTP API body size. Default: 64Mb, Min: 512K
+                               }
 
+-- | Create default 'HTTPOptions'
 zero :: HTTPOptions
-zero = HTTPOptions { enabled = 0
+zero = HTTPOptions { enabled = False
                 , port = 0
                 , bind = Nothing
                 , accessToken = Nothing
-                , blocking = 0
-                , readAnon = 0
+                , blocking = False
+                , readAnon = False
                 , maxBodySize = 0
                 }
 
@@ -58,7 +64,7 @@ instance Storable HTTPOptionsB where
         sizeOf _ = #{size EJDB_HTTP}
         alignment _ = #{alignment EJDB_HTTP}
         peek ptr = do
-           enabled <- #{peek EJDB_HTTP, enabled} ptr
+           enabled <- #{peek EJDB_HTTP, enabled} ptr :: IO CInt
            port <- #{peek EJDB_HTTP, port} ptr
            bindPtr <- #{peek EJDB_HTTP, bind} ptr
            bindFPtr <- newForeignPtr finalizerFree nullPtr
@@ -67,24 +73,31 @@ instance Storable HTTPOptionsB where
            access_token_len <- #{peek EJDB_HTTP, access_token_len} ptr
            accessTokenFPtr <- newForeignPtr finalizerFree nullPtr
            accessToken <- maybePeek (\ptr -> peekCStringLen (ptr, access_token_len)) access_token
-           blocking <- #{peek EJDB_HTTP, blocking} ptr
-           read_anon <- #{peek EJDB_HTTP, read_anon} ptr
+           blocking <- #{peek EJDB_HTTP, blocking} ptr :: IO CInt
+           read_anon <- #{peek EJDB_HTTP, read_anon} ptr :: IO CInt
            max_body_size <- #{peek EJDB_HTTP, max_body_size} ptr
            return $ HTTPOptionsB
-                      (HTTPOptions enabled port bind accessToken blocking read_anon max_body_size)
+                      (HTTPOptions
+                        (toBool enabled)
+                        port
+                        bind
+                        accessToken
+                        (toBool blocking)
+                        (toBool read_anon)
+                         max_body_size)
                       bindFPtr accessTokenFPtr (CSize $ fromIntegral access_token_len)
         poke ptr (HTTPOptionsB
                    (HTTPOptions enabled port _ _ blocking read_anon max_body_size)
                     bindPtr accessTokenPtr accessTokenLen) = do
-           #{poke EJDB_HTTP, enabled} ptr enabled
+           #{poke EJDB_HTTP, enabled} ptr (fromBool enabled :: CInt)
            #{poke EJDB_HTTP, port} ptr port
            withForeignPtr bindPtr $ \cBind ->
              #{poke EJDB_HTTP, bind} ptr cBind
            withForeignPtr accessTokenPtr $ \access_token ->
              #{poke EJDB_HTTP, access_token} ptr access_token
            #{poke EJDB_HTTP, access_token_len} ptr accessTokenLen
-           #{poke EJDB_HTTP, blocking} ptr blocking
-           #{poke EJDB_HTTP, read_anon} ptr read_anon
+           #{poke EJDB_HTTP, blocking} ptr (fromBool blocking :: CInt)
+           #{poke EJDB_HTTP, read_anon} ptr (fromBool read_anon :: CInt)
            #{poke EJDB_HTTP, max_body_size} ptr max_body_size
 
 
