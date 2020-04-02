@@ -1,7 +1,6 @@
 module Database.EJDB2
     ( init
     , Database
-    , Options(..)
     , KV.OpenFlags
     , KV.readonlyOpenFlags
     , KV.truncateOpenFlags
@@ -22,11 +21,11 @@ module Database.EJDB2
     , removeCollection
     , renameCollection
     , getMeta
-    , IndexMode
-    , uniqueIndexMode
-    , strIndexMode
-    , f64IndexMode
-    , i64IndexMode
+    , IndexMode.IndexMode
+    , IndexMode.uniqueIndexMode
+    , IndexMode.strIndexMode
+    , IndexMode.f64IndexMode
+    , IndexMode.i64IndexMode
     , ensureIndex
     , removeIndex
     , onlineBackup
@@ -47,9 +46,6 @@ import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc  as EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec as EJDBExec
 import qualified Database.EJDB2.IndexMode               as IndexMode
-import           Database.EJDB2.IndexMode
-                 ( IndexMode, f64IndexMode, i64IndexMode, strIndexMode
-                 , uniqueIndexMode )
 import           Database.EJDB2.JBL
 import qualified Database.EJDB2.KV                      as KV
 import           Database.EJDB2.Options                 as Options
@@ -284,7 +280,7 @@ getMeta (Database _ ejdb) = alloca $ \jblPtr -> c_ejdb_get_meta ejdb jblPtr
 ensureIndex :: Database
             -> String -- ^ Collection name
             -> String -- ^ rfc6901 JSON pointer to indexed field
-            -> [IndexMode] -- ^ Index mode
+            -> [IndexMode.IndexMode] -- ^ Index mode
             -> IO ()
 ensureIndex (Database _ ejdb) collection path indexMode =
     withCString collection $ \cCollection -> withCString path $
@@ -298,7 +294,7 @@ ensureIndex (Database _ ejdb) collection path indexMode =
 removeIndex :: Database
             -> String -- ^ Collection name
             -> String -- ^ rfc6901 JSON pointer to indexed field
-            -> [IndexMode] -- ^ Index mode
+            -> [IndexMode.IndexMode] -- ^ Index mode
             -> IO ()
 removeIndex (Database _ ejdb) collection path indexMode =
     withCString collection $ \cCollection -> withCString path $
