@@ -1,7 +1,6 @@
 module Database.EJDB2
     ( init
     , Database
-    , KV.OpenFlags
     , KV.readonlyOpenFlags
     , KV.truncateOpenFlags
     , KV.noTrimOnCloseOpenFlags
