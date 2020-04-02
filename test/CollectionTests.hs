@@ -32,12 +32,12 @@ removeTest databaseIO = testCase "removeTest" $ do
     count <- Query.fromString "@plants/*" >>= getCount database
     count @?= 0
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
 renameTest :: IO Database -> TestTree
 renameTest databaseIO = testCase "renameTest" $ do
@@ -49,12 +49,12 @@ renameTest databaseIO = testCase "renameTest" $ do
     storedPlant <- getById database "vegetables" id
     storedPlant @?= Just plant
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
 ensureTest :: IO Database -> TestTree
 ensureTest databaseIO = testCase "ensureTest" $ do
@@ -64,9 +64,9 @@ ensureTest databaseIO = testCase "ensureTest" $ do
     assertException (userError "ErrorTargetCollectionExists")
                     (renameCollection database "plants" "vegetables")
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }

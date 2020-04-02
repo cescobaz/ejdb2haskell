@@ -37,12 +37,12 @@ putNewTest databaseIO = testCase "putNewTest" $ do
     storedPlant <- getById database "plants" id
     storedPlant @?= Just plant
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
 putOnNewIdTest :: IO Database -> TestTree
 putOnNewIdTest databaseIO = testCase "putOnNewIdTest" $ do
@@ -51,12 +51,12 @@ putOnNewIdTest databaseIO = testCase "putOnNewIdTest" $ do
     storedPlant <- getById database "plants" 42
     storedPlant @?= Just plant
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
 putOnExistingIdTest :: IO Database -> TestTree
 putOnExistingIdTest databaseIO = testCase "putOnExistingIdTest" $ do
@@ -66,12 +66,12 @@ putOnExistingIdTest databaseIO = testCase "putOnExistingIdTest" $ do
     storedPlant <- getById database "plants" id
     storedPlant @?= Just lastPlant
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
     lastPlant = plant { description = Just "a tipical christmas tree" }
 
@@ -82,12 +82,12 @@ mergeOrPutNewTest databaseIO = testCase "mergeOrPutNewTest" $ do
     storedPlant <- getById database "plants" 4242
     storedPlant @?= Just plant
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
 mergeOrPutExistingTest :: IO Database -> TestTree
 mergeOrPutExistingTest databaseIO = testCase "mergeOrPutExistingTest" $ do
@@ -97,12 +97,12 @@ mergeOrPutExistingTest databaseIO = testCase "mergeOrPutExistingTest" $ do
     storedPlant <- getById database "plants" id
     storedPlant @?= Just lastPlant
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
     jsonPatch = Aeson.Object $
         Map.fromList [ ("year", Aeson.Null)
@@ -120,12 +120,12 @@ patchTest databaseIO = testCase "patchTest" $ do
     storedPlant <- getById database "plants" id
     storedPlant @?= Just lastPlant
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
     jsonPatch = Aeson.Array $
         Vector.fromList [ Aeson.Object $ Map.fromList [ ("op", "remove")

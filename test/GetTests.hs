@@ -39,7 +39,7 @@ getByIdTest :: IO Database -> TestTree
 getByIdTest databaseIO = testCase "getById" $ do
     database <- databaseIO
     plant <- getById database "plants" 1
-    plant @?= Just Plant { id          = Nothing
+    plant @?= Just nothingPlant { id          = Nothing
                          , name        = Just "pinus"
                          , isTree      = Just True
                          , year        = Just 1753
@@ -69,7 +69,7 @@ getListTest databaseIO = testCase "getList" $ do
     database <- databaseIO
     plants <- getListTestQuery >>= getList database
     plants @?= [ ( 2
-                     , Just Plant { id          = Nothing
+                     , Just nothingPlant { id          = Nothing
                                   , name        = Just "gentiana brentae"
                                   , isTree      = Just False
                                   , year        = Just 2008
@@ -77,7 +77,7 @@ getListTest databaseIO = testCase "getList" $ do
                                   }
                      )
                , ( 3
-                     , Just Plant { id          = Nothing
+                     , Just nothingPlant { id          = Nothing
                                   , name        = Just "leontopodium"
                                   , isTree      = Just False
                                   , year        = Just 1817
@@ -85,7 +85,7 @@ getListTest databaseIO = testCase "getList" $ do
                                   }
                      )
                , ( 4
-                     , Just Plant { id          = Nothing
+                     , Just nothingPlant { id          = Nothing
                                   , name        = Just "leucanthemum vulgare"
                                   , isTree      = Just False
                                   , year        = Just 1778
@@ -100,19 +100,19 @@ getListTest' databaseIO = testCase "getList'" $ do
     database <- databaseIO
     plants <- getListTestQuery >>= getList' database
     plants
-        @?= [ Just Plant { id          = Just 2
+        @?= [ Just nothingPlant { id          = Just 2
                          , name        = Just "gentiana brentae"
                          , isTree      = Just False
                          , year        = Just 2008
                          , description = Just "violet 🌺flower"
                          }
-            , Just Plant { id          = Just 3
+            , Just nothingPlant { id          = Just 3
                          , name        = Just "leontopodium"
                          , isTree      = Just False
                          , year        = Just 1817
                          , description = Just "tipical alpine flower"
                          }
-            , Just Plant { id          = Just 4
+            , Just nothingPlant { id          = Just 4
                          , name        = Just "leucanthemum vulgare"
                          , isTree      = Just False
                          , year        = Just 1778

@@ -28,12 +28,12 @@ deleteTest databaseIO = testCase "deleteTest" $ do
     storedPlant <- getById database "plants" id :: IO (Maybe Plant)
     storedPlant @?= Nothing
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
 deleteNotExistingTest :: IO Database -> TestTree
 deleteNotExistingTest databaseIO = testCase "deleteNotExistingTest" $ do

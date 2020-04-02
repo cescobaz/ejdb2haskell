@@ -39,32 +39,34 @@ getListWithBoolQueryTest databaseIO = testCase "getListWithBoolQuery" $ do
     query <- Query.fromString "@plants/[isTree=:?] | asc /name"
     Query.setBoolAtIndex False 0 query
     plants <- getList database query
-    plants @?= [ ( 2
-                     , Just Plant { id          = Nothing
-                                  , name        = Just "gentiana brentae"
-                                  , isTree      = Just False
-                                  , year        = Just 2008
-                                  , description = Just "violet 🌺flower"
-                                  }
-                     )
-               , ( 3
-                     , Just Plant { id          = Nothing
-                                  , name        = Just "leontopodium"
-                                  , isTree      = Just False
-                                  , year        = Just 1817
-                                  , description = Just "tipical alpine flower"
-                                  }
-                     )
-               , ( 4
-                     , Just Plant { id          = Nothing
-                                  , name        = Just "leucanthemum vulgare"
-                                  , isTree      = Just False
-                                  , year        = Just 1778
-                                  , description =
-                                        Just "very common flower in Italy 🍕"
-                                  }
-                     )
-               ]
+    plants
+        @?= [ ( 2
+                  , Just nothingPlant { id          = Nothing
+                                      , name        = Just "gentiana brentae"
+                                      , isTree      = Just False
+                                      , year        = Just 2008
+                                      , description = Just "violet 🌺flower"
+                                      }
+                  )
+            , ( 3
+                  , Just nothingPlant { id          = Nothing
+                                      , name        = Just "leontopodium"
+                                      , isTree      = Just False
+                                      , year        = Just 1817
+                                      , description =
+                                            Just "tipical alpine flower"
+                                      }
+                  )
+            , ( 4
+                  , Just nothingPlant { id          = Nothing
+                                      , name        =
+                                            Just "leucanthemum vulgare"
+                                      , isTree      = Just False
+                                      , year        = Just 1778
+                                      , description = Just "very common flower in Italy 🍕"
+                                      }
+                  )
+            ]
 
 getListWithI64QueryTest :: IO Database -> TestTree
 getListWithI64QueryTest databaseIO = testCase "getListWithI64Query" $ do
@@ -72,49 +74,51 @@ getListWithI64QueryTest databaseIO = testCase "getListWithI64Query" $ do
     query <- Query.fromString "@plants/[year>:year] | asc /name"
     Query.setI64 1800 "year" query
     plants <- getList database query
-    plants @?= [ ( 2
-                     , Just Plant { id          = Nothing
-                                  , name        = Just "gentiana brentae"
-                                  , isTree      = Just False
-                                  , year        = Just 2008
-                                  , description = Just "violet 🌺flower"
-                                  }
-                     )
-               , ( 3
-                     , Just Plant { id          = Nothing
-                                  , name        = Just "leontopodium"
-                                  , isTree      = Just False
-                                  , year        = Just 1817
-                                  , description = Just "tipical alpine flower"
-                                  }
-                     )
-               ]
+    plants
+        @?= [ ( 2
+                  , Just nothingPlant { id          = Nothing
+                                      , name        = Just "gentiana brentae"
+                                      , isTree      = Just False
+                                      , year        = Just 2008
+                                      , description = Just "violet 🌺flower"
+                                      }
+                  )
+            , ( 3
+                  , Just nothingPlant { id          = Nothing
+                                      , name        = Just "leontopodium"
+                                      , isTree      = Just False
+                                      , year        = Just 1817
+                                      , description =
+                                            Just "tipical alpine flower"
+                                      }
+                  )
+            ]
 
 getListWithI64AtIndexQueryTest :: IO Database -> TestTree
-getListWithI64AtIndexQueryTest databaseIO =
-    testCase "getListWithI64AtIndexQuery" $ do
-        database <- databaseIO
-        query <- Query.fromString "@plants/[year>:?] | asc /name"
-        Query.setI64AtIndex 1800 0 query
-        plants <- getList database query
-        plants
-            @?= [ ( 2
-                      , Just Plant { id          = Nothing
-                                   , name        = Just "gentiana brentae"
-                                   , isTree      = Just False
-                                   , year        = Just 2008
-                                   , description = Just "violet 🌺flower"
-                                   }
-                      )
-                , ( 3
-                      , Just Plant { id          = Nothing
-                                   , name        = Just "leontopodium"
-                                   , isTree      = Just False
-                                   , year        = Just 1817
-                                   , description = Just "tipical alpine flower"
-                                   }
-                      )
-                ]
+getListWithI64AtIndexQueryTest databaseIO = testCase "getListWithI64AtIndexQuery" $ do
+    database <- databaseIO
+    query <- Query.fromString "@plants/[year>:?] | asc /name"
+    Query.setI64AtIndex 1800 0 query
+    plants <- getList database query
+    plants
+        @?= [ ( 2
+                  , Just nothingPlant { id          = Nothing
+                                      , name        = Just "gentiana brentae"
+                                      , isTree      = Just False
+                                      , year        = Just 2008
+                                      , description = Just "violet 🌺flower"
+                                      }
+                  )
+            , ( 3
+                  , Just nothingPlant { id          = Nothing
+                                      , name        = Just "leontopodium"
+                                      , isTree      = Just False
+                                      , year        = Just 1817
+                                      , description =
+                                            Just "tipical alpine flower"
+                                      }
+                  )
+            ]
 
 getListWithStringQueryTest :: IO Database -> TestTree
 getListWithStringQueryTest databaseIO = testCase "getListWithStringQuery" $ do
@@ -123,12 +127,12 @@ getListWithStringQueryTest databaseIO = testCase "getListWithStringQuery" $ do
     Query.setString "pinus" "name" query
     plants <- getList database query
     plants @?= [ ( 1
-                     , Just Plant { id          = Nothing
-                                  , name        = Just "pinus"
-                                  , isTree      = Just True
-                                  , year        = Just 1753
-                                  , description = Just "wow 🌲"
-                                  }
+                     , Just nothingPlant { id          = Nothing
+                                         , name        = Just "pinus"
+                                         , isTree      = Just True
+                                         , year        = Just 1753
+                                         , description = Just "wow 🌲"
+                                         }
                      )
                ]
 
@@ -140,12 +144,12 @@ getListWithStringAtIndexQueryTest databaseIO =
         Query.setStringAtIndex "pinus" 0 query
         plants <- getList database query
         plants @?= [ ( 1
-                         , Just Plant { id          = Nothing
-                                      , name        = Just "pinus"
-                                      , isTree      = Just True
-                                      , year        = Just 1753
-                                      , description = Just "wow 🌲"
-                                      }
+                         , Just nothingPlant { id          = Nothing
+                                             , name        = Just "pinus"
+                                             , isTree      = Just True
+                                             , year        = Just 1753
+                                             , description = Just "wow 🌲"
+                                             }
                          )
                    ]
 
@@ -157,13 +161,13 @@ getListWithRegexQueryTest databaseIO = testCase "getListWithRegexQuery" $ do
     Query.setRegex ".*Italy.*" "description" query
     plants <- getList database query
     plants @?= [ ( 4
-                     , Just Plant { id          = Nothing
-                                  , name        = Just "leucanthemum vulgare"
-                                  , isTree      = Just False
-                                  , year        = Just 1778
-                                  , description =
-                                        Just "very common flower in Italy 🍕"
-                                  }
+                     , Just nothingPlant { id          = Nothing
+                                         , name        =
+                                               Just "leucanthemum vulgare"
+                                         , isTree      = Just False
+                                         , year        = Just 1778
+                                         , description = Just "very common flower in Italy 🍕"
+                                         }
                      )
                ]
 
@@ -174,17 +178,16 @@ getListWithRegexAtIndexQueryTest databaseIO =
         query <- Query.fromString "@plants/[description re :?] | asc /name"
         Query.setRegexAtIndex "very.*Italy" 0 query
         plants <- getList database query
-        plants
-            @?= [ ( 4
-                      , Just Plant { id          = Nothing
-                                   , name        = Just "leucanthemum vulgare"
-                                   , isTree      = Just False
-                                   , year        = Just 1778
-                                   , description =
-                                         Just "very common flower in Italy 🍕"
-                                   }
-                      )
-                ]
+        plants @?= [ ( 4
+                         , Just nothingPlant { id          = Nothing
+                                             , name        =
+                                                   Just "leucanthemum vulgare"
+                                             , isTree      = Just False
+                                             , year        = Just 1778
+                                             , description = Just "very common flower in Italy 🍕"
+                                             }
+                         )
+                   ]
 
 getListWithMixedQueryTest :: IO Database -> TestTree
 getListWithMixedQueryTest databaseIO = testCase "getListWithMixedQuery" $ do
@@ -195,11 +198,11 @@ getListWithMixedQueryTest databaseIO = testCase "getListWithMixedQuery" $ do
     Query.setStringAtIndex "pinus" 1 query
     plants <- getList database query
     plants @?= [ ( 1
-                     , Just Plant { id          = Nothing
-                                  , name        = Just "pinus"
-                                  , isTree      = Just True
-                                  , year        = Just 1753
-                                  , description = Just "wow 🌲"
-                                  }
+                     , Just nothingPlant { id          = Nothing
+                                         , name        = Just "pinus"
+                                         , isTree      = Just True
+                                         , year        = Just 1753
+                                         , description = Just "wow 🌲"
+                                         }
                      )
                ]

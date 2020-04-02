@@ -44,10 +44,10 @@ onlineBackupTest databaseIO = testCase "onlineBackupTest" $ do
                close databaseLast
                throw (e :: IOException))
   where
-    plant = Plant { id          = Nothing
-                  , name        = Just "pinus"
-                  , isTree      = Just True
-                  , year        = Just 1753
-                  , description = Just "wow 🌲"
-                  }
+    plant = nothingPlant { id          = Nothing
+                         , name        = Just "pinus"
+                         , isTree      = Just True
+                         , year        = Just 1753
+                         , description = Just "wow 🌲"
+                         }
 
