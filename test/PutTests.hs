@@ -2,15 +2,16 @@
 
 module PutTests ( tests ) where
 
-import qualified Data.Aeson          as Aeson
-import qualified Data.HashMap.Strict as Map
-import qualified Data.Vector         as Vector
+import qualified Data.Aeson             as Aeson
+import qualified Data.HashMap.Strict    as Map
+import qualified Data.Vector            as Vector
 
 import           Database.EJDB2
+import           Database.EJDB2.Options
 
 import           Plant
 
-import           Prelude             hiding ( id )
+import           Prelude                hiding ( id )
 
 import           Test.Tasty
 import           Test.Tasty.HUnit

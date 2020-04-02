@@ -7,6 +7,7 @@ import qualified Data.Aeson                    as Aeson
 import           Database.EJDB2
 import qualified Database.EJDB2.CollectionMeta as CollectionMeta
 import qualified Database.EJDB2.Meta           as Meta
+import           Database.EJDB2.Options
 
 import           Plant
 

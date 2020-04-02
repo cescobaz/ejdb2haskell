@@ -3,11 +3,12 @@ module CollectionTests ( tests ) where
 import           Asserts
 
 import           Database.EJDB2
-import qualified Database.EJDB2.Query as Query
+import           Database.EJDB2.Options
+import qualified Database.EJDB2.Query   as Query
 
 import           Plant
 
-import           Prelude              hiding ( id )
+import           Prelude                hiding ( id )
 
 import           Test.Tasty
 import           Test.Tasty.HUnit

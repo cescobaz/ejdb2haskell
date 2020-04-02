@@ -3,10 +3,11 @@ module DeleteTests ( tests ) where
 import           Asserts
 
 import           Database.EJDB2
+import           Database.EJDB2.Options
 
 import           Plant
 
-import           Prelude          hiding ( id )
+import           Prelude                hiding ( id )
 
 import           Test.Tasty
 import           Test.Tasty.HUnit

@@ -4,10 +4,11 @@ import           Control.Exception
 import           Control.Monad
 
 import           Database.EJDB2
+import           Database.EJDB2.Options
 
 import           Plant
 
-import           Prelude           hiding ( id )
+import           Prelude                hiding ( id )
 
 import           System.Directory
 
