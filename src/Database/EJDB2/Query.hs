@@ -1,5 +1,5 @@
 module Database.EJDB2.Query
-    ( Query(..)
+    ( Query
     , fromString
     , setBool
     , setBoolAtIndex
@@ -15,24 +15,18 @@ module Database.EJDB2.Query
     , setNullAtIndex
     ) where
 
-import qualified Data.Bool                   as Bool
+import qualified Data.Bool                       as Bool
 import           Data.IORef
 import           Data.Int
 
 import           Database.EJDB2.Bindings.JQL
+import           Database.EJDB2.QueryConstructor
 import           Database.EJDB2.Result
 
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 import           Foreign.Marshal.Alloc
-
-import           System.IO.Unsafe
-
-data Query = Query { jql     :: JQL
-                   , jqlPtr  :: ForeignPtr JQL
-                   , strings :: IORef [ForeignPtr CChar]
-                   }
 
 -- | Create query object from specified text query. Collection must be specified in query.
 fromString :: String -- ^ Query text

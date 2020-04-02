@@ -49,6 +49,7 @@ import           Database.EJDB2.JBL
 import qualified Database.EJDB2.KV                      as KV
 import           Database.EJDB2.Options                 as Options
 import           Database.EJDB2.Query
+import           Database.EJDB2.QueryConstructor
 import           Database.EJDB2.Result
 
 import           Foreign
