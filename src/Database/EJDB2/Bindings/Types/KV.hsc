@@ -16,8 +16,7 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import qualified Database.EJDB2.Bindings.Types.WALOptions as WALOptions
-
+import qualified Database.EJDB2.WALOptions as WALOptions
 
 #include <ejdb2/ejdb2.h>
 -- | Database file open modes.

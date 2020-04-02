@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module Database.EJDB2.Bindings.Types.WALOptions where
+module Database.EJDB2.WALOptions where
 
 
 import           Foreign

@@ -27,6 +27,7 @@ library
                      , Database.EJDB2.IndexMeta
                      , Database.EJDB2.Options
                      , Database.EJDB2.HTTPOptions
+                     , Database.EJDB2.WALOptions
   other-modules:
                        Database.EJDB2.JBL
                      , Database.EJDB2.Result
@@ -38,7 +39,6 @@ library
                      , Database.EJDB2.Bindings.Types.EJDBExec
                      , Database.EJDB2.Bindings.Types.EJDBDoc
                      , Database.EJDB2.Bindings.Types.KV
-                     , Database.EJDB2.Bindings.Types.WALOptions
                      , Database.EJDB2.Bindings.Types.IndexMode
   build-depends:       base ^>=4.12.0.0
                      , bytestring ==0.10.10.0
