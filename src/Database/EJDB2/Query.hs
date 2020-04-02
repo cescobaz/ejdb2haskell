@@ -1,4 +1,13 @@
-module Database.EJDB2.Query where
+module Database.EJDB2.Query
+    ( Query(..)
+    , fromString
+    , setBool
+    , setBoolAtIndex
+    , setI64
+    , setI64AtIndex
+    , setString
+    , setStringAtIndex
+    ) where
 
 import qualified Data.Bool                   as Bool
 import           Data.IORef
@@ -69,19 +78,28 @@ setI64AtIndex number index (Query jql _ _) =
     c_jql_set_i64 jql nullPtr (CInt $ fromIntegral index) (CIntMax number)
     >>= checkRC
 
+newCStringInIORef :: String -> IORef [ForeignPtr CChar] -> IO CString
+newCStringInIORef string ioRef = do
+    cString <- newCString string
+    cStringPtr <- newForeignPtr finalizerFree cString
+    modifyIORef' ioRef ((:) cStringPtr)
+    return cString
+
 -- | Bind string to query placeholder
 setString :: String
           -> String -- ^ Placeholder
           -> Query
           -> IO ()
-setString string placeholder (Query jql _ _) =
-    withCString placeholder $ \cPlaceholder -> withCString string $
-    \cString -> c_jql_set_str jql cPlaceholder 0 cString >>= checkRC
+setString string placeholder (Query jql _ ioRef) = do
+    cString <- newCStringInIORef string ioRef
+    withCString placeholder $
+        \cPlaceholder -> c_jql_set_str jql cPlaceholder 0 cString >>= checkRC
 
 -- | Bind string to query at specified index
 setStringAtIndex :: String
                  -> Int -- ^ Index
                  -> Query
                  -> IO ()
-setStringAtIndex string index (Query jql _ _) = withCString string $ \cString ->
+setStringAtIndex string index (Query jql _ ioRef) = do
+    cString <- newCStringInIORef string ioRef
     c_jql_set_str jql nullPtr (CInt $ fromIntegral index) cString >>= checkRC
