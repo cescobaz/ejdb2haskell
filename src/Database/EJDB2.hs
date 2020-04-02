@@ -49,13 +49,13 @@ import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc   as EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec  as EJDBExec
 import           Database.EJDB2.Bindings.Types.EJDBHttp  ( HTTPOptions(..) )
-import           Database.EJDB2.Bindings.Types.EJDBOpts  as EJDBOpts
 import           Database.EJDB2.Bindings.Types.IndexMode
                  ( IndexMode, f64IndexMode, i64IndexMode, strIndexMode
                  , uniqueIndexMode )
 import qualified Database.EJDB2.Bindings.Types.IndexMode as IndexMode
 import qualified Database.EJDB2.Bindings.Types.KV        as KV
 import           Database.EJDB2.JBL
+import           Database.EJDB2.Options                  as Options
 import           Database.EJDB2.Query
 import           Database.EJDB2.Result
 
@@ -77,8 +77,8 @@ minimalOptions :: String -- ^ Database file path
                -> Options -- ^ Options to use in 'open'
 
 minimalOptions path openFlags =
-    EJDBOpts.zero { kv = KV.zero { KV.path = Just path, KV.oflags = openFlags }
-                  }
+    Options.zero { kv = KV.zero { KV.path = Just path, KV.oflags = openFlags }
+                 }
 
 {-|
   ejdb2 initialization routine.

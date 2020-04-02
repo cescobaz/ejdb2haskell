@@ -25,21 +25,21 @@ library
                      , Database.EJDB2.Meta
                      , Database.EJDB2.CollectionMeta
                      , Database.EJDB2.IndexMeta
+                     , Database.EJDB2.Options
   other-modules:
-      Database.EJDB2.JBL
-    , Database.EJDB2.Result
-    , Database.EJDB2.Bindings.EJDB2
-    , Database.EJDB2.Bindings.JQL
-    , Database.EJDB2.Bindings.JBL
-    , Database.EJDB2.Bindings.Types.C.String
-    , Database.EJDB2.Bindings.Types.EJDB
-    , Database.EJDB2.Bindings.Types.EJDBOpts
-    , Database.EJDB2.Bindings.Types.EJDBHttp
-    , Database.EJDB2.Bindings.Types.EJDBExec
-    , Database.EJDB2.Bindings.Types.EJDBDoc
-    , Database.EJDB2.Bindings.Types.KV
-    , Database.EJDB2.Bindings.Types.WALOptions
-    , Database.EJDB2.Bindings.Types.IndexMode
+                       Database.EJDB2.JBL
+                     , Database.EJDB2.Result
+                     , Database.EJDB2.Bindings.EJDB2
+                     , Database.EJDB2.Bindings.JQL
+                     , Database.EJDB2.Bindings.JBL
+                     , Database.EJDB2.Bindings.Types.C.String
+                     , Database.EJDB2.Bindings.Types.EJDB
+                     , Database.EJDB2.Bindings.Types.EJDBHttp
+                     , Database.EJDB2.Bindings.Types.EJDBExec
+                     , Database.EJDB2.Bindings.Types.EJDBDoc
+                     , Database.EJDB2.Bindings.Types.KV
+                     , Database.EJDB2.Bindings.Types.WALOptions
+                     , Database.EJDB2.Bindings.Types.IndexMode
   build-depends:       base ^>=4.12.0.0
                      , bytestring ==0.10.10.0
                      , aeson ==1.4.6.0

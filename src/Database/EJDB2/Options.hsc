@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module Database.EJDB2.Bindings.Types.EJDBOpts
+module Database.EJDB2.Options
         ( Options(..), zero, OptionsB, options, build ) where
 
 import           Data.ByteString.Char8
