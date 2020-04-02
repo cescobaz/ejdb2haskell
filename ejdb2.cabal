@@ -27,7 +27,7 @@ library
                      , Database.EJDB2.IndexMeta
                      , Database.EJDB2.Options
                      , Database.EJDB2.HTTP
-                     , Database.EJDB2.WALOptions
+                     , Database.EJDB2.WAL
                      , Database.EJDB2.KV
   other-modules:
                        Database.EJDB2.JBL

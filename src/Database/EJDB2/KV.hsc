@@ -16,7 +16,7 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import qualified Database.EJDB2.WALOptions as WALOptions
+import qualified Database.EJDB2.WAL as WAL
 
 #include <ejdb2/ejdb2.h>
 -- | Database file open modes.
@@ -51,7 +51,7 @@ data Options =
             , fmtVersion :: !Int32 -- ^ Database storage format version. Leave it as zero for the latest supported format. Used only for newly created databases
             , oflags :: ![OpenFlags] -- ^ Database file open modes
             , fileLockFailFast :: !Bool -- ^ Do not wait and raise error if database is locked by another process
-            , wal :: !WALOptions.WALOptions
+            , wal :: !WAL.Options
             }
 
 -- | Create default Options
@@ -61,7 +61,7 @@ zero = Options { path = Nothing
                  , fmtVersion = 0
                  , oflags = []
                  , fileLockFailFast = False
-                 , wal = WALOptions.zero
+                 , wal = WAL.zero
                  }
 
 -- | Storable version of Options

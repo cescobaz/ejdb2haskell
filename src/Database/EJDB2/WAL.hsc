@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module Database.EJDB2.WALOptions (WALOptions(..), zero) where
+module Database.EJDB2.WAL (Options(..), zero) where
 
 
 import           Foreign
@@ -12,7 +12,7 @@ import Database.EJDB2.Result
 #include <ejdb2/ejdb2.h>
 
 -- | Write ahead log (WAL) options.
-data WALOptions = WALOptions { enabled :: !Bool -- ^ WAL enabled
+data Options = Options { enabled :: !Bool -- ^ WAL enabled
                              , checkCRCOnCheckpoint :: !Bool -- ^ Check CRC32 sum of data blocks during checkpoint. Default: false
                              , savepointTimeoutSec :: !Word32 -- ^ Savepoint timeout seconds. Default: 10 sec
                              , checkpointTimeoutSec :: !Word32 -- ^ Checkpoint timeout seconds. Default: 300 sec (5 min);
@@ -24,9 +24,9 @@ data WALOptions = WALOptions { enabled :: !Bool -- ^ WAL enabled
                              , walLockInterceptorOpaque :: !(Ptr ()) -- ^ Opaque data for 'walLockInterceptor'
                              }
 
--- | Create default WALOptions
-zero :: WALOptions
-zero = WALOptions { enabled = False
+-- | Create default Options
+zero :: Options
+zero = Options { enabled = False
                    , checkCRCOnCheckpoint = False
                    , savepointTimeoutSec = 0
                    , checkpointTimeoutSec = 0
@@ -36,7 +36,7 @@ zero = WALOptions { enabled = False
                    , walLockInterceptorOpaque = nullPtr
                    }
 
-instance Storable WALOptions where
+instance Storable Options where
         sizeOf _ = #{size IWKV_WAL_OPTS}
         alignment _  = #{alignment IWKV_WAL_OPTS}
         peek ptr = do
@@ -48,8 +48,8 @@ instance Storable WALOptions where
           checkpoint_buffer_sz <- #{peek IWKV_WAL_OPTS, checkpoint_buffer_sz} ptr
           wal_lock_interceptor <- #{peek IWKV_WAL_OPTS, wal_lock_interceptor} ptr
           wal_lock_interceptor_opaque <- #{peek IWKV_WAL_OPTS, wal_lock_interceptor_opaque} ptr
-          return $ WALOptions enabled check_crc_on_checkpoint savepoint_timeout_sec checkpoint_timeout_sec wal_buffer_sz checkpoint_buffer_sz wal_lock_interceptor wal_lock_interceptor_opaque
-        poke ptr (WALOptions enabled check_crc_on_checkpoint savepoint_timeout_sec checkpoint_timeout_sec wal_buffer_sz checkpoint_buffer_sz wal_lock_interceptor wal_lock_interceptor_opaque) = do
+          return $ Options enabled check_crc_on_checkpoint savepoint_timeout_sec checkpoint_timeout_sec wal_buffer_sz checkpoint_buffer_sz wal_lock_interceptor wal_lock_interceptor_opaque
+        poke ptr (Options enabled check_crc_on_checkpoint savepoint_timeout_sec checkpoint_timeout_sec wal_buffer_sz checkpoint_buffer_sz wal_lock_interceptor wal_lock_interceptor_opaque) = do
           #{poke IWKV_WAL_OPTS, enabled} ptr enabled
           #{poke IWKV_WAL_OPTS, check_crc_on_checkpoint} ptr check_crc_on_checkpoint
           #{poke IWKV_WAL_OPTS, savepoint_timeout_sec} ptr savepoint_timeout_sec
