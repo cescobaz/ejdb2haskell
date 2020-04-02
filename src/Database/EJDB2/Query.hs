@@ -7,6 +7,8 @@ module Database.EJDB2.Query
     , setI64AtIndex
     , setString
     , setStringAtIndex
+    , setRegex
+    , setRegexAtIndex
     ) where
 
 import qualified Data.Bool                   as Bool
@@ -103,3 +105,22 @@ setStringAtIndex :: String
 setStringAtIndex string index (Query jql _ ioRef) = do
     cString <- newCStringInIORef string ioRef
     c_jql_set_str jql nullPtr (CInt $ fromIntegral index) cString >>= checkRC
+
+-- | Bind regex to query placeholder
+setRegex :: String -- ^ Regex
+         -> String -- ^ Placeholder
+         -> Query
+         -> IO ()
+setRegex string placeholder (Query jql _ ioRef) = do
+    cString <- newCStringInIORef string ioRef
+    withCString placeholder $
+        \cPlaceholder -> c_jql_set_regexp jql cPlaceholder 0 cString >>= checkRC
+
+-- | Bind regex to query at specified index
+setRegexAtIndex :: String -- ^ Regex
+                -> Int -- ^ Index
+                -> Query
+                -> IO ()
+setRegexAtIndex string index (Query jql _ ioRef) = do
+    cString <- newCStringInIORef string ioRef
+    c_jql_set_regexp jql nullPtr (CInt $ fromIntegral index) cString >>= checkRC

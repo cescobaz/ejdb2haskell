@@ -24,6 +24,8 @@ tests = withResource (open testReadOnlyDatabaseOpts) close $ \databaseIO ->
               , getListWithI64AtIndexQueryTest databaseIO
               , getListWithStringQueryTest databaseIO
               , getListWithStringAtIndexQueryTest databaseIO
+              , getListWithRegexQueryTest databaseIO
+              , getListWithRegexAtIndexQueryTest databaseIO
               , getListWithMixedQueryTest databaseIO
               ]
 
@@ -146,6 +148,43 @@ getListWithStringAtIndexQueryTest databaseIO =
                                       }
                          )
                    ]
+
+getListWithRegexQueryTest :: IO Database -> TestTree
+getListWithRegexQueryTest databaseIO = testCase "getListWithRegexQuery" $ do
+    database <- databaseIO
+    query
+        <- Query.fromString "@plants/[description re :description ] | asc /name"
+    Query.setRegex ".*Italy.*" "description" query
+    plants <- getList database query
+    plants @?= [ ( 4
+                     , Just Plant { id          = Nothing
+                                  , name        = Just "leucanthemum vulgare"
+                                  , isTree      = Just False
+                                  , year        = Just 1778
+                                  , description =
+                                        Just "very common flower in Italy 🍕"
+                                  }
+                     )
+               ]
+
+getListWithRegexAtIndexQueryTest :: IO Database -> TestTree
+getListWithRegexAtIndexQueryTest databaseIO =
+    testCase "getListWithRegexAtIndexQuery" $ do
+        database <- databaseIO
+        query <- Query.fromString "@plants/[description re :?] | asc /name"
+        Query.setRegexAtIndex "very.*Italy" 0 query
+        plants <- getList database query
+        plants
+            @?= [ ( 4
+                      , Just Plant { id          = Nothing
+                                   , name        = Just "leucanthemum vulgare"
+                                   , isTree      = Just False
+                                   , year        = Just 1778
+                                   , description =
+                                         Just "very common flower in Italy 🍕"
+                                   }
+                      )
+                ]
 
 getListWithMixedQueryTest :: IO Database -> TestTree
 getListWithMixedQueryTest databaseIO = testCase "getListWithMixedQuery" $ do

@@ -22,6 +22,9 @@ foreign import ccall unsafe "ejdb2/jql.h jql_set_i64" c_jql_set_i64
 foreign import ccall unsafe "ejdb2/jql.h jql_set_str" c_jql_set_str
     :: JQL -> CString -> CInt -> CString -> IO RC
 
+foreign import ccall unsafe "ejdb2/jql.h jql_set_regexp" c_jql_set_regexp
+    :: JQL -> CString -> CInt -> CString -> IO RC
+
 foreign import ccall unsafe "ejdb2/jql.h jql_destroy" c_jql_destroy
     :: Ptr JQL -> IO ()
 
