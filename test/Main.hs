@@ -16,6 +16,8 @@ import           Prelude           hiding ( init )
 
 import           PutTests
 
+import           QueryTests
+
 import           Test.Tasty
 
 main :: IO ()
@@ -24,6 +26,7 @@ main = init >> defaultMain Main.tests
 tests :: TestTree
 tests = testGroup "ejdb2"
                   [ GetTests.tests
+                  , QueryTests.tests
                   , PutTests.tests
                   , DeleteTests.tests
                   , CollectionTests.tests

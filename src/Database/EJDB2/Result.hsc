@@ -81,6 +81,19 @@ data Result =
     | ErrorCollectionNotFound               -- ^ Collection not found
     | ErrorTargetCollectionExists               -- ^ Target collection exists
     | ErrorPatchJsonNotObject               -- ^ Patch JSON must be an object (map)
+    | ErrorQueryParse                   -- ^ Query parsing error (JQL_ERROR_QUERY_PARSE)
+    | ErrorInvalidPlaceholder           -- ^ Invalid placeholder position (JQL_ERROR_INVALID_PLACEHOLDER)
+    | ErrorUnsetPlaceholder             -- ^ Found unset placeholder (JQL_ERROR_UNSET_PLACEHOLDER)
+    | ErrorRegexpInvalid                -- ^ Invalid regular expression (JQL_ERROR_REGEXP_INVALID)
+    | ErrorRegexpCharset                -- ^ Invalid regular expression: expected ']' at end of character set (JQL_ERROR_REGEXP_CHARSET)
+    | ErrorRegexpSubexp                 -- ^ Invalid regular expression: expected ')' at end of subexpression (JQL_ERROR_REGEXP_SUBEXP)
+    | ErrorRegexpSubmatch               -- ^ Invalid regular expression: expected '}' at end of submatch (JQL_ERROR_REGEXP_SUBMATCH)
+    | ErrorRegexpEngine                 -- ^ Illegal instruction in compiled regular expression (please report this bug) (JQL_ERROR_REGEXP_ENGINE)
+    | ErrorSkipAlreadySet               -- ^ Skip clause already specified (JQL_ERROR_SKIP_ALREADY_SET)
+    | ErrorLimitAlreadySet              -- ^ Limit clause already specified (JQL_ERROR_SKIP_ALREADY_SET)
+    | ErrorOrderbyMaxLimit              -- ^ Reached max number of asc/desc order clauses: 64 (JQL_ERROR_ORDERBY_MAX_LIMIT)
+    | ErrorNoCollection                 -- ^ No collection specified in query (JQL_ERROR_NO_COLLECTION)
+    | ErrorInvalidPlaceholderValueType  -- ^ Invalid type of placeholder value (JQL_ERROR_INVALID_PLACEHOLDER_VALUE_TYPE)
     deriving ( Eq, Show )
 
 decodeRC :: RC -> Result
@@ -143,4 +156,17 @@ decodeRC rc = case rc of
   #{const EJDB_ERROR_COLLECTION_NOT_FOUND}                ->  ErrorCollectionNotFound
   #{const EJDB_ERROR_TARGET_COLLECTION_EXISTS}            ->  ErrorTargetCollectionExists
   #{const EJDB_ERROR_PATCH_JSON_NOT_OBJECT}               ->  ErrorPatchJsonNotObject
+  #{const JQL_ERROR_QUERY_PARSE}                          ->  ErrorQueryParse
+  #{const JQL_ERROR_INVALID_PLACEHOLDER}                  ->  ErrorInvalidPlaceholder
+  #{const JQL_ERROR_UNSET_PLACEHOLDER}                    ->  ErrorUnsetPlaceholder
+  #{const JQL_ERROR_REGEXP_INVALID}                       ->  ErrorRegexpInvalid
+  #{const JQL_ERROR_REGEXP_CHARSET}                       ->  ErrorRegexpCharset
+  #{const JQL_ERROR_REGEXP_SUBEXP}                        ->  ErrorRegexpSubexp
+  #{const JQL_ERROR_REGEXP_SUBMATCH}                      ->  ErrorRegexpSubmatch
+  #{const JQL_ERROR_REGEXP_ENGINE}                        ->  ErrorRegexpEngine
+  #{const JQL_ERROR_SKIP_ALREADY_SET}                     ->  ErrorSkipAlreadySet
+  #{const JQL_ERROR_LIMIT_ALREADY_SET}                    ->  ErrorLimitAlreadySet
+  #{const JQL_ERROR_ORDERBY_MAX_LIMIT}                    ->  ErrorOrderbyMaxLimit
+  #{const JQL_ERROR_NO_COLLECTION}                        ->  ErrorNoCollection
+  #{const JQL_ERROR_INVALID_PLACEHOLDER_VALUE_TYPE}       ->  ErrorInvalidPlaceholderValueType
   _                                                ->  error $ "Database.EJDB2.Bindings.IW.decodeRC " ++ show rc

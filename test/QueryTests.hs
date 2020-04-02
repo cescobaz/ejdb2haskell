@@ -24,6 +24,7 @@ tests = withResource (open testReadOnlyDatabaseOpts) close $ \databaseIO ->
               , getListWithI64AtIndexQueryTest databaseIO
               , getListWithStringQueryTest databaseIO
               , getListWithStringAtIndexQueryTest databaseIO
+              , getListWithMixedQueryTest databaseIO
               ]
 
 testReadOnlyDatabaseOpts :: Options
@@ -33,7 +34,7 @@ testReadOnlyDatabaseOpts =
 getListWithBoolQueryTest :: IO Database -> TestTree
 getListWithBoolQueryTest databaseIO = testCase "getListWithBoolQuery" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[isTree=?] | asc /name"
+    query <- Query.fromString "@plants/[isTree=:?] | asc /name"
     Query.setBoolAtIndex False 0 query
     plants <- getList database query
     plants @?= [ ( 2
@@ -91,7 +92,7 @@ getListWithI64AtIndexQueryTest :: IO Database -> TestTree
 getListWithI64AtIndexQueryTest databaseIO =
     testCase "getListWithI64AtIndexQuery" $ do
         database <- databaseIO
-        query <- Query.fromString "@plants/[year>?] | asc /name"
+        query <- Query.fromString "@plants/[year>:?] | asc /name"
         Query.setI64AtIndex 1800 0 query
         plants <- getList database query
         plants
@@ -133,7 +134,7 @@ getListWithStringAtIndexQueryTest :: IO Database -> TestTree
 getListWithStringAtIndexQueryTest databaseIO =
     testCase "getListWithStringAtIndexQuery" $ do
         database <- databaseIO
-        query <- Query.fromString "@plants/[name=?] | asc /name"
+        query <- Query.fromString "@plants/[name=:?] | asc /name"
         Query.setStringAtIndex "pinus" 0 query
         plants <- getList database query
         plants @?= [ ( 1
@@ -145,3 +146,21 @@ getListWithStringAtIndexQueryTest databaseIO =
                                       }
                          )
                    ]
+
+getListWithMixedQueryTest :: IO Database -> TestTree
+getListWithMixedQueryTest databaseIO = testCase "getListWithMixedQuery" $ do
+    database <- databaseIO
+    query <- Query.fromString "@plants/[year>:year] and /[isTree=:?] and /[name=:?] | asc /name"
+    Query.setI64 1700 "year" query
+    Query.setBoolAtIndex True 0 query
+    Query.setStringAtIndex "pinus" 1 query
+    plants <- getList database query
+    plants @?= [ ( 1
+                     , Just Plant { id          = Nothing
+                                  , name        = Just "pinus"
+                                  , isTree      = Just True
+                                  , year        = Just 1753
+                                  , description = Just "wow 🌲"
+                                  }
+                     )
+               ]

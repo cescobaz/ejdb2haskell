@@ -124,7 +124,7 @@ getById (Database _ ejdb) collection id = alloca $ \jblPtr ->
 
 -- | Executes a given query and returns the number of documents.
 getCount :: Database -> Query -> IO Int64
-getCount (Database _ ejdb) (Query jql _) = alloca $
+getCount (Database _ ejdb) (Query jql _ _) = alloca $
     \countPtr -> c_ejdb_count ejdb jql countPtr 0 >>= checkRC >> peek countPtr
     >>= \(CIntMax int) -> return int
 
@@ -155,7 +155,7 @@ visitor' ref _ docPtr _ = do
     return 0
 
 exec :: (IORef [a] -> EJDBExecVisitor) -> Database -> Query -> IO [a]
-exec visitor (Database _ ejdb) (Query jql _) = do
+exec visitor (Database _ ejdb) (Query jql _ _) = do
     ref <- newIORef []
     visitor <- mkEJDBExecVisitor (visitor ref)
     let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
