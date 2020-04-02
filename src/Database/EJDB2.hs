@@ -6,7 +6,6 @@ module Database.EJDB2
     , KV.readonlyOpenFlags
     , KV.truncateOpenFlags
     , KV.noTrimOnCloseOpenFlags
-    , HTTPOptions(..)
     , minimalOptions
     , open
     , close
