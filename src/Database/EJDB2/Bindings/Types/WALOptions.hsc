@@ -7,21 +7,21 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import Database.EJDB2.Bindings.IW
+import Database.EJDB2.Result
 
 #include <ejdb2/ejdb2.h>
 
 -- | Write ahead log (WAL) options.
 data WALOptions = WALOptions { enabled :: !Bool -- ^ WAL enabled
-                               , checkCRCOnCheckpoint :: !Bool -- ^ Check CRC32 sum of data blocks during checkpoint. Default: false
-                               , savepointTimeoutSec :: !Word32 -- ^ Savepoint timeout seconds. Default: 10 sec
-                               , checkpointTimeoutSec :: !Word32 -- ^ Checkpoint timeout seconds. Default: 300 sec (5 min);
-                               , walBufferSz :: !Word64 -- ^ WAL file intermediate buffer size. Default: 8Mb
-                               , checkpointBufferSz :: !Word8 -- ^ Checkpoint buffer size in bytes. Default: 1Gb
-                               , walLockInterceptor :: !(FunPtr (CBool -> Ptr () -> IO RC)) -- ^ Optional function called before acquiring and after releasing.
--- exclusive database lock by WAL checkpoint thread.
--- In the case of 'before lock' first argument will be set to true
-                               , walLockInterceptorOpaque :: !(Ptr ()) } -- ^ Opaque data for 'walLockInterceptor'
+                             , checkCRCOnCheckpoint :: !Bool -- ^ Check CRC32 sum of data blocks during checkpoint. Default: false
+                             , savepointTimeoutSec :: !Word32 -- ^ Savepoint timeout seconds. Default: 10 sec
+                             , checkpointTimeoutSec :: !Word32 -- ^ Checkpoint timeout seconds. Default: 300 sec (5 min);
+                             , walBufferSz :: !Word64 -- ^ WAL file intermediate buffer size. Default: 8Mb
+                             , checkpointBufferSz :: !Word8 -- ^ Checkpoint buffer size in bytes. Default: 1Gb
+                             , walLockInterceptor :: !(FunPtr (CBool -> Ptr () -> IO RC)) -- ^ Optional function called before acquiring and after releasing.
+-- exclusive database lock byAL checkpoint thread.
+-- In the case of 'before loc first argument will be set to true
+                             , walLockInterceptorOpaque :: !(Ptr ()) } -- ^ Opaque data for 'walLockInterceptor'
 
 -- | Create default WALOptions
 zero :: WALOptions

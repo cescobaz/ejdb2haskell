@@ -2,8 +2,8 @@ module Database.EJDB2.Query where
 
 import qualified Data.Bool                   as Bool
 
-import           Database.EJDB2.Bindings.IW
 import           Database.EJDB2.Bindings.JQL
+import           Database.EJDB2.Result
 
 import           Foreign
 import           Foreign.C.String

@@ -11,8 +11,8 @@ import qualified Data.HashMap.Strict         as Map
 import           Data.IORef
 import           Data.Int
 
-import qualified Database.EJDB2.Bindings.IW  as IW
 import           Database.EJDB2.Bindings.JBL
+import qualified Database.EJDB2.Result       as Result
 
 import           Foreign
 import           Foreign.C.Types
@@ -29,7 +29,7 @@ decodeToByteString jbl = do
     ref <- newIORef BSL.empty
     thePrinter <- mkJBLJSONPrinter (printer ref)
     c_jbl_as_json jbl thePrinter nullPtr 0
-        >>= IW.checkRCFinally (freeHaskellFunPtr thePrinter)
+        >>= Result.checkRCFinally (freeHaskellFunPtr thePrinter)
     BSL.reverse <$> readIORef ref
 
 parse :: Aeson.FromJSON a => Maybe Aeson.Value -> Maybe a
@@ -58,7 +58,7 @@ printer ref buffer size _ _ _
         array <- peekArray0 (CChar 0) buffer
         printerArray ref array
 
-printerArray :: IORef BSL.ByteString -> [CChar] -> IO IW.RC
+printerArray :: IORef BSL.ByteString -> [CChar] -> IO Result.RC
 printerArray ref array = do
     modifyIORef' ref $ \string ->
         foldl (\result (CChar ch) -> BSL.cons (fromIntegral ch) result)
@@ -70,7 +70,7 @@ encode :: Aeson.ToJSON a => a -> (JBL -> IO b) -> IO b
 encode obj f = do
     let byteString = encodeToByteString obj
     BS.useAsCString byteString $ \string -> alloca $ \jblPtr ->
-        finally (c_jbl_from_json jblPtr string >>= IW.checkRC >> peek jblPtr
+        finally (c_jbl_from_json jblPtr string >>= Result.checkRC >> peek jblPtr
                  >>= f)
                 (c_jbl_destroy jblPtr)
 

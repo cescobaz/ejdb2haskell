@@ -2,7 +2,7 @@
 
 module Database.EJDB2.Bindings.JBL where
 
-import           Database.EJDB2.Bindings.IW
+import           Database.EJDB2.Result
 
 import           Foreign
 import           Foreign.C.String

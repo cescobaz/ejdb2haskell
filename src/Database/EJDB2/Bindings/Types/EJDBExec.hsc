@@ -12,7 +12,7 @@ import           Foreign.C.Types
 import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.JQL
 import           Database.EJDB2.Bindings.Types.EJDBDoc
-import           Database.EJDB2.Bindings.IW
+import           Database.EJDB2.Result
 
 #include <ejdb2/ejdb2.h>
 

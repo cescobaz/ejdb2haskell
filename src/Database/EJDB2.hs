@@ -44,7 +44,6 @@ import           Data.Int
 import           Data.Word
 
 import           Database.EJDB2.Bindings.EJDB2
-import           Database.EJDB2.Bindings.IW
 import           Database.EJDB2.Bindings.JBL
 import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc   as EJDBDoc
@@ -58,6 +57,7 @@ import qualified Database.EJDB2.Bindings.Types.IndexMode as IndexMode
 import qualified Database.EJDB2.Bindings.Types.KV        as KV
 import           Database.EJDB2.JBL
 import           Database.EJDB2.Query
+import           Database.EJDB2.Result
 
 import           Foreign
 import           Foreign.C.String

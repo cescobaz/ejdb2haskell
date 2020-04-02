@@ -2,8 +2,8 @@
 
 module Database.EJDB2.Bindings.JQL where
 
-import           Database.EJDB2.Bindings.IW
 import           Database.EJDB2.Bindings.Types.C.String
+import           Database.EJDB2.Result
 
 import           Foreign
 import           Foreign.C.String
