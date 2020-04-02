@@ -9,12 +9,12 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import qualified Database.EJDB2.Bindings.Types.KV as KV
+import qualified Database.EJDB2.KV                as KV
 import qualified Database.EJDB2.HTTPOptions       as HTTPOptions
 
 #include <ejdb2/ejdb2.h>
 
-data Options = Options { kv :: !KV.KVOptions -- ^ IWKV storage options
+data Options = Options { kv :: !KV.Options -- ^ IWKV storage options
                        , http :: !HTTPOptions.HTTPOptions -- ^ HTTP/Websocket server options
                        , noWal :: !Bool -- ^ Do not use write-ahead-log. Default: false
                        , sortBufferSz :: !Word32 -- ^ Max sorting buffer size. If exceeded an overflow temp file for sorted data will created. Default 16Mb, min: 1Mb
@@ -30,7 +30,7 @@ zero = Options { kv = KV.zero
                }
 
 data OptionsB = OptionsB { options :: Options
-                         , kvB :: !KV.KVOptionsB
+                         , kvB :: !KV.OptionsB
                          , httpB :: !HTTPOptions.HTTPOptionsB
                          }
 

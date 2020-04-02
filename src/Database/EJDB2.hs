@@ -2,7 +2,6 @@ module Database.EJDB2
     ( init
     , Database
     , Options(..)
-    , KV.KVOptions(..)
     , KV.OpenFlags
     , KV.readonlyOpenFlags
     , KV.truncateOpenFlags
@@ -37,8 +36,8 @@ module Database.EJDB2
 import           Control.Exception
 import           Control.Monad
 
-import qualified Data.Aeson                              as Aeson
-import qualified Data.ByteString                         as BS
+import qualified Data.Aeson                             as Aeson
+import qualified Data.ByteString                        as BS
 import           Data.IORef
 import           Data.Int
 import           Data.Word
@@ -46,16 +45,15 @@ import           Data.Word
 import           Database.EJDB2.Bindings.EJDB2
 import           Database.EJDB2.Bindings.JBL
 import           Database.EJDB2.Bindings.Types.EJDB
-import           Database.EJDB2.Bindings.Types.EJDBDoc   as EJDBDoc
-import           Database.EJDB2.Bindings.Types.EJDBExec  as EJDBExec
-import           Database.EJDB2.Bindings.Types.IndexMode
+import           Database.EJDB2.Bindings.Types.EJDBDoc  as EJDBDoc
+import           Database.EJDB2.Bindings.Types.EJDBExec as EJDBExec
+import qualified Database.EJDB2.IndexMode               as IndexMode
+import           Database.EJDB2.IndexMode
                  ( IndexMode, f64IndexMode, i64IndexMode, strIndexMode
                  , uniqueIndexMode )
-import qualified Database.EJDB2.Bindings.Types.IndexMode as IndexMode
-import qualified Database.EJDB2.Bindings.Types.KV        as KV
-import           Database.EJDB2.HTTPOptions              ( HTTPOptions(..) )
 import           Database.EJDB2.JBL
-import           Database.EJDB2.Options                  as Options
+import qualified Database.EJDB2.KV                      as KV
+import           Database.EJDB2.Options                 as Options
 import           Database.EJDB2.Query
 import           Database.EJDB2.Result
 
@@ -66,7 +64,7 @@ import           Foreign.Marshal.Alloc
 import           Foreign.Ptr
 import           Foreign.Storable
 
-import           Prelude                                 hiding ( init )
+import           Prelude                                hiding ( init )
 
 -- | Reference to database. You can create it by 'open'.
 data Database = Database (Ptr EJDB) EJDB

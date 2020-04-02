@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module Database.EJDB2.Bindings.Types.IndexMode where
+module Database.EJDB2.IndexMode where
 
 
 import           Foreign
