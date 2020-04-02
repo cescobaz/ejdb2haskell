@@ -31,6 +31,7 @@ tests = withResource (open testReadOnlyDatabaseOpts) close $ \databaseIO ->
               , getListWithNullQueryTest databaseIO
               , getListWithNullAtIndexQueryTest databaseIO
               , getListWithMixedQueryTest databaseIO
+              , getListWithTwoStringsQueryTest databaseIO
               ]
 
 testReadOnlyDatabaseOpts :: Options
@@ -285,3 +286,21 @@ getListWithMixedQueryTest databaseIO = testCase "getListWithMixedQuery" $ do
                                          }
                      )
                ]
+
+getListWithTwoStringsQueryTest :: IO Database -> TestTree
+getListWithTwoStringsQueryTest databaseIO =
+    testCase "getListWithTwoStringsQuery" $ do
+        database <- databaseIO
+        query <- Query.fromString "@plants/[description re :descr] and /[name=:name] | asc /name"
+        Query.setRegex ".*wow.*" "descr" query
+        Query.setString "pinus" "name" query
+        plants <- getList database query
+        plants @?= [ ( 1
+                         , Just nothingPlant { id          = Nothing
+                                             , name        = Just "pinus"
+                                             , isTree      = Just True
+                                             , year        = Just 1753
+                                             , description = Just "wow 🌲"
+                                             }
+                         )
+                   ]
