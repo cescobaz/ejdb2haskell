@@ -1,9 +1,9 @@
 {-# LANGUAGE CPP #-}
 
-module Database.EJDB2.HTTPOptions
-        ( HTTPOptions(..)
+module Database.EJDB2.HTTP
+        ( Options(..)
         , zero
-        , HTTPOptionsB
+        , OptionsB
         , options
         , build
         ) where
@@ -17,35 +17,37 @@ import           Data.Int
 #include <ejdb2/ejdb2.h>
 
 -- | EJDB HTTP\/Websocket Server options.
-data HTTPOptions = HTTPOptions { enabled :: !Bool -- ^ If HTTP\/Websocket endpoint enabled. Default: false
-                               , port :: !Int32 -- ^ Listen port number, required
-                               , bind :: Maybe String -- ^ Listen IP\/host. Default: /localhost/
-                               , accessToken :: Maybe String -- ^ Server access token passed in /X-Access-Token/ header. Default: zero
-                               , blocking :: !Bool -- ^ Block 'open' thread until http service finished.
--- Otherwise HTTP server will be started in background.
+data Options = Options { enabled :: !Bool -- ^ If HTTP\/Websocket endpoint enabled. Default: false
+                       , port :: !Int32 -- ^ Listen port number, required
+                       , bind :: Maybe String -- ^ Listen IP\/host. Default: /localhost/
+                       , accessToken :: Maybe String -- ^ Server access token passed in /X-Access-Token/ header. Default: zero
+                       , blocking :: !Bool -- ^ Block 'open' thread until http service finished.
+-- Otherwise HTTP servee started in background.
 
-                               , readAnon :: !Bool -- ^ Allow anonymous read-only database access
-                               , maxBodySize :: !Word64 -- ^ Maximum WS\/HTTP API body size. Default: 64Mb, Min: 512K
-                               }
+                       , readAnon :: !Bool -- ^ Allow anonymous read-only database access
+                       , maxBodySize :: !Word64 -- ^ Maximum WS\/HTTP API body size. Default: 64Mb, Min: 512K
+                       }
 
--- | Create default 'HTTPOptions'
-zero :: HTTPOptions
-zero = HTTPOptions { enabled = False
-                , port = 0
-                , bind = Nothing
-                , accessToken = Nothing
-                , blocking = False
-                , readAnon = False
-                , maxBodySize = 0
-                }
+-- | Create default 'Options'
+zero :: Options
+zero = Options { enabled = False
+               , port = 0
+               , bind = Nothing
+               , accessToken = Nothing
+               , blocking = False
+               , readAnon = False
+               , maxBodySize = 0
+               }
 
-data HTTPOptionsB = HTTPOptionsB { options :: HTTPOptions
-                                 , bindPtr :: ForeignPtr CChar
-                                 , accessTokenPtr :: ForeignPtr CChar
-                                 , accessTokenLen :: CSize
-                                 }
+-- | Storable version of Options
+data OptionsB = OptionsB { options :: Options
+                         , bindPtr :: ForeignPtr CChar
+                         , accessTokenPtr :: ForeignPtr CChar
+                         , accessTokenLen :: CSize
+                         }
 
-build :: HTTPOptions -> IO HTTPOptionsB
+-- | Create Storable version of Options
+build :: Options -> IO OptionsB
 build options = do
         bindPtr <-  maybeNew newCString (bind options)
           >>= newForeignPtr finalizerFree
@@ -53,14 +55,14 @@ build options = do
                                               Nothing -> return (nullPtr, 0)
                                               Just value -> newCStringLen value
         accessTokenFPtr <- newForeignPtr finalizerFree accessTokenPtr
-        return HTTPOptionsB { options = options
+        return OptionsB { options = options
                             , bindPtr = bindPtr
                             , accessTokenPtr = accessTokenFPtr
                             , accessTokenLen = CSize $ fromIntegral accessTokenLen
                             }
 
 
-instance Storable HTTPOptionsB where
+instance Storable OptionsB where
         sizeOf _ = #{size EJDB_HTTP}
         alignment _ = #{alignment EJDB_HTTP}
         peek ptr = do
@@ -76,8 +78,8 @@ instance Storable HTTPOptionsB where
            blocking <- #{peek EJDB_HTTP, blocking} ptr :: IO CInt
            read_anon <- #{peek EJDB_HTTP, read_anon} ptr :: IO CInt
            max_body_size <- #{peek EJDB_HTTP, max_body_size} ptr
-           return $ HTTPOptionsB
-                      (HTTPOptions
+           return $ OptionsB
+                      (Options
                         (toBool enabled)
                         port
                         bind
@@ -86,8 +88,8 @@ instance Storable HTTPOptionsB where
                         (toBool read_anon)
                          max_body_size)
                       bindFPtr accessTokenFPtr (CSize $ fromIntegral access_token_len)
-        poke ptr (HTTPOptionsB
-                   (HTTPOptions enabled port _ _ blocking read_anon max_body_size)
+        poke ptr (OptionsB
+                   (Options enabled port _ _ blocking read_anon max_body_size)
                     bindPtr accessTokenPtr accessTokenLen) = do
            #{poke EJDB_HTTP, enabled} ptr (fromBool enabled :: CInt)
            #{poke EJDB_HTTP, port} ptr port

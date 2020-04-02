@@ -44,6 +44,7 @@ unCombineOpenFlags (OpenFlags (CUChar oflags)) = filter f allOpenFlags
           where
             f = \(OpenFlags (CUChar value)) -> value .&. oflags /= 0
 
+-- | IWKV storage open options
 data Options =
     Options { path :: Maybe String -- ^ Path to database file
             , randomSeed :: !Word32 -- ^ Random seed used for iwu random generator
@@ -53,6 +54,7 @@ data Options =
             , wal :: !WALOptions.WALOptions
             }
 
+-- | Create default Options
 zero :: Options
 zero = Options { path = Nothing
                  , randomSeed = 0
@@ -62,11 +64,13 @@ zero = Options { path = Nothing
                  , wal = WALOptions.zero
                  }
 
+-- | Storable version of Options
 data OptionsB =
     OptionsB { options :: Options
-               , pathPtr :: ForeignPtr CChar
-               }
+             , pathPtr :: ForeignPtr CChar
+             }
 
+-- | Create Storable version of Options
 build :: Options -> IO OptionsB
 build options = do
         pathPtr <- maybeNew newCString (path options)

@@ -21,7 +21,8 @@ data WALOptions = WALOptions { enabled :: !Bool -- ^ WAL enabled
                              , walLockInterceptor :: !(FunPtr (CBool -> Ptr () -> IO RC)) -- ^ Optional function called before acquiring and after releasing.
 -- exclusive database lock byAL checkpoint thread.
 -- In the case of 'before loc first argument will be set to true
-                             , walLockInterceptorOpaque :: !(Ptr ()) } -- ^ Opaque data for 'walLockInterceptor'
+                             , walLockInterceptorOpaque :: !(Ptr ()) -- ^ Opaque data for 'walLockInterceptor'
+                             }
 
 -- | Create default WALOptions
 zero :: WALOptions
