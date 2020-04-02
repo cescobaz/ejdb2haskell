@@ -22,10 +22,14 @@ tests = withResource (open testReadOnlyDatabaseOpts) close $ \databaseIO ->
               [ getListWithBoolQueryTest databaseIO
               , getListWithI64QueryTest databaseIO
               , getListWithI64AtIndexQueryTest databaseIO
+              , getListWithF64QueryTest databaseIO
+              , getListWithF64AtIndexQueryTest databaseIO
               , getListWithStringQueryTest databaseIO
               , getListWithStringAtIndexQueryTest databaseIO
               , getListWithRegexQueryTest databaseIO
               , getListWithRegexAtIndexQueryTest databaseIO
+              , getListWithNullQueryTest databaseIO
+              , getListWithNullAtIndexQueryTest databaseIO
               , getListWithMixedQueryTest databaseIO
               ]
 
@@ -121,6 +125,43 @@ getListWithI64AtIndexQueryTest databaseIO = testCase "getListWithI64AtIndexQuery
                   )
             ]
 
+getListWithF64QueryTest :: IO Database -> TestTree
+getListWithF64QueryTest databaseIO = testCase "getListWithF64Query" $ do
+    database <- databaseIO
+    query <- Query.fromString "@plants/[ratio > :ratio] | asc /name"
+    Query.setF64 1.6 "ratio" query
+    plants <- getList database query
+    plants @?= [ ( 4
+                     , Just nothingPlant { id          = Nothing
+                                         , name        =
+                                               Just "leucanthemum vulgare"
+                                         , isTree      = Just False
+                                         , year        = Just 1778
+                                         , description = Just "very common flower in Italy 🍕"
+                                         , ratio       = Just 1.618
+                                         }
+                     )
+               ]
+
+getListWithF64AtIndexQueryTest :: IO Database -> TestTree
+getListWithF64AtIndexQueryTest databaseIO =
+    testCase "getListWithF64AtIndexQuery" $ do
+        database <- databaseIO
+        query <- Query.fromString "@plants/[ratio > :?] | asc /name"
+        Query.setF64AtIndex 1.6 0 query
+        plants <- getList database query
+        plants @?= [ ( 4
+                         , Just nothingPlant { id          = Nothing
+                                             , name        =
+                                                   Just "leucanthemum vulgare"
+                                             , isTree      = Just False
+                                             , year        = Just 1778
+                                             , description = Just "very common flower in Italy 🍕"
+                                             , ratio       = Just 1.618
+                                             }
+                         )
+                   ]
+
 getListWithStringQueryTest :: IO Database -> TestTree
 getListWithStringQueryTest databaseIO = testCase "getListWithStringQuery" $ do
     database <- databaseIO
@@ -188,6 +229,41 @@ getListWithRegexAtIndexQueryTest databaseIO =
                                              , year        = Just 1778
                                              , description = Just "very common flower in Italy 🍕"
                                              , ratio       = Just 1.618
+                                             }
+                         )
+                   ]
+
+getListWithNullQueryTest :: IO Database -> TestTree
+getListWithNullQueryTest databaseIO = testCase "getListWithNullQuery" $ do
+    database <- databaseIO
+    query <- Query.fromString "@plants/[ratio=:ratio] | asc /name"
+    Query.setNull "ratio" query
+    plants <- getList database query
+    plants @?= [ ( 1
+                     , Just nothingPlant { id          = Nothing
+                                         , name        = Just "pinus"
+                                         , isTree      = Just True
+                                         , year        = Just 1753
+                                         , description = Just "wow 🌲"
+                                         , ratio       = Nothing
+                                         }
+                     )
+               ]
+
+getListWithNullAtIndexQueryTest :: IO Database -> TestTree
+getListWithNullAtIndexQueryTest databaseIO =
+    testCase "getListWithNullAtIndexQuery" $ do
+        database <- databaseIO
+        query <- Query.fromString "@plants/[ratio=:?] | asc /name"
+        Query.setNullAtIndex 0 query
+        plants <- getList database query
+        plants @?= [ ( 1
+                         , Just nothingPlant { id          = Nothing
+                                             , name        = Just "pinus"
+                                             , isTree      = Just True
+                                             , year        = Just 1753
+                                             , description = Just "wow 🌲"
+                                             , ratio       = Nothing
                                              }
                          )
                    ]

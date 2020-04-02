@@ -5,10 +5,14 @@ module Database.EJDB2.Query
     , setBoolAtIndex
     , setI64
     , setI64AtIndex
+    , setF64
+    , setF64AtIndex
     , setString
     , setStringAtIndex
     , setRegex
     , setRegexAtIndex
+    , setNull
+    , setNullAtIndex
     ) where
 
 import qualified Data.Bool                   as Bool
@@ -80,6 +84,24 @@ setI64AtIndex number index (Query jql _ _) =
     c_jql_set_i64 jql nullPtr (CInt $ fromIntegral index) (CIntMax number)
     >>= checkRC
 
+-- | Bind 'Double' to query placeholder
+setF64 :: Double
+       -> String -- ^ Placeholder
+       -> Query
+       -> IO ()
+setF64 number placeholder (Query jql _ _) = withCString placeholder $
+    \cPlaceholder -> c_jql_set_f64 jql cPlaceholder 0 (CDouble number)
+    >>= checkRC
+
+-- | Bind 'Double' to query at specified index
+setF64AtIndex :: Double
+              -> Int -- ^ Index
+              -> Query
+              -> IO ()
+setF64AtIndex number index (Query jql _ _) =
+    c_jql_set_f64 jql nullPtr (CInt $ fromIntegral index) (CDouble number)
+    >>= checkRC
+
 newCStringInIORef :: String -> IORef [ForeignPtr CChar] -> IO CString
 newCStringInIORef string ioRef = do
     cString <- newCString string
@@ -124,3 +146,17 @@ setRegexAtIndex :: String -- ^ Regex
 setRegexAtIndex string index (Query jql _ ioRef) = do
     cString <- newCStringInIORef string ioRef
     c_jql_set_regexp jql nullPtr (CInt $ fromIntegral index) cString >>= checkRC
+
+-- | Bind /null/ value to query placeholder
+setNull :: String -- ^ Placeholder
+        -> Query
+        -> IO ()
+setNull placeholder (Query jql _ _) = withCString placeholder $
+    \cPlaceholder -> c_jql_set_null jql cPlaceholder 0 >>= checkRC
+
+-- | Bind /null/ value to query at specified index
+setNullAtIndex :: Int -- ^ Index
+               -> Query
+               -> IO ()
+setNullAtIndex index (Query jql _ _) =
+    c_jql_set_null jql nullPtr (CInt $ fromIntegral index) >>= checkRC
