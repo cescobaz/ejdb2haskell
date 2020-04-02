@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module Database.EJDB2.Bindings.Types.EJDBHttp
+module Database.EJDB2.HTTPOptions
         ( HTTPOptions(..)
         , zero
         , HTTPOptionsB

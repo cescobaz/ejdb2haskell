@@ -26,6 +26,7 @@ library
                      , Database.EJDB2.CollectionMeta
                      , Database.EJDB2.IndexMeta
                      , Database.EJDB2.Options
+                     , Database.EJDB2.HTTPOptions
   other-modules:
                        Database.EJDB2.JBL
                      , Database.EJDB2.Result
@@ -34,7 +35,6 @@ library
                      , Database.EJDB2.Bindings.JBL
                      , Database.EJDB2.Bindings.Types.C.String
                      , Database.EJDB2.Bindings.Types.EJDB
-                     , Database.EJDB2.Bindings.Types.EJDBHttp
                      , Database.EJDB2.Bindings.Types.EJDBExec
                      , Database.EJDB2.Bindings.Types.EJDBDoc
                      , Database.EJDB2.Bindings.Types.KV
