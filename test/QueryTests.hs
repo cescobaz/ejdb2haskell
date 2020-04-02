@@ -64,6 +64,7 @@ getListWithBoolQueryTest databaseIO = testCase "getListWithBoolQuery" $ do
                                       , isTree      = Just False
                                       , year        = Just 1778
                                       , description = Just "very common flower in Italy 🍕"
+                                      , ratio       = Just 1.618
                                       }
                   )
             ]
@@ -167,6 +168,7 @@ getListWithRegexQueryTest databaseIO = testCase "getListWithRegexQuery" $ do
                                          , isTree      = Just False
                                          , year        = Just 1778
                                          , description = Just "very common flower in Italy 🍕"
+                                         , ratio       = Just 1.618
                                          }
                      )
                ]
@@ -185,6 +187,7 @@ getListWithRegexAtIndexQueryTest databaseIO =
                                              , isTree      = Just False
                                              , year        = Just 1778
                                              , description = Just "very common flower in Italy 🍕"
+                                             , ratio       = Just 1.618
                                              }
                          )
                    ]

@@ -40,11 +40,11 @@ getByIdTest databaseIO = testCase "getById" $ do
     database <- databaseIO
     plant <- getById database "plants" 1
     plant @?= Just nothingPlant { id          = Nothing
-                         , name        = Just "pinus"
-                         , isTree      = Just True
-                         , year        = Just 1753
-                         , description = Just "wow 🌲"
-                         }
+                                , name        = Just "pinus"
+                                , isTree      = Just True
+                                , year        = Just 1753
+                                , description = Just "wow 🌲"
+                                }
 
 getByIdNotFoundTest :: IO Database -> TestTree
 getByIdNotFoundTest databaseIO = testCase "getById - not found" $ do
@@ -68,57 +68,61 @@ getListTest :: IO Database -> TestTree
 getListTest databaseIO = testCase "getList" $ do
     database <- databaseIO
     plants <- getListTestQuery >>= getList database
-    plants @?= [ ( 2
-                     , Just nothingPlant { id          = Nothing
-                                  , name        = Just "gentiana brentae"
-                                  , isTree      = Just False
-                                  , year        = Just 2008
-                                  , description = Just "violet 🌺flower"
-                                  }
-                     )
-               , ( 3
-                     , Just nothingPlant { id          = Nothing
-                                  , name        = Just "leontopodium"
-                                  , isTree      = Just False
-                                  , year        = Just 1817
-                                  , description = Just "tipical alpine flower"
-                                  }
-                     )
-               , ( 4
-                     , Just nothingPlant { id          = Nothing
-                                  , name        = Just "leucanthemum vulgare"
-                                  , isTree      = Just False
-                                  , year        = Just 1778
-                                  , description =
-                                        Just "very common flower in Italy 🍕"
-                                  }
-                     )
-               ]
+    plants
+        @?= [ ( 2
+                  , Just nothingPlant { id          = Nothing
+                                      , name        = Just "gentiana brentae"
+                                      , isTree      = Just False
+                                      , year        = Just 2008
+                                      , description = Just "violet 🌺flower"
+                                      }
+                  )
+            , ( 3
+                  , Just nothingPlant { id          = Nothing
+                                      , name        = Just "leontopodium"
+                                      , isTree      = Just False
+                                      , year        = Just 1817
+                                      , description =
+                                            Just "tipical alpine flower"
+                                      }
+                  )
+            , ( 4
+                  , Just nothingPlant { id          = Nothing
+                                      , name        =
+                                            Just "leucanthemum vulgare"
+                                      , isTree      = Just False
+                                      , year        = Just 1778
+                                      , description = Just "very common flower in Italy 🍕"
+                                      , ratio       = Just 1.618
+                                      }
+                  )
+            ]
 
 getListTest' :: IO Database -> TestTree
 getListTest' databaseIO = testCase "getList'" $ do
     database <- databaseIO
     plants <- getListTestQuery >>= getList' database
-    plants
-        @?= [ Just nothingPlant { id          = Just 2
-                         , name        = Just "gentiana brentae"
-                         , isTree      = Just False
-                         , year        = Just 2008
-                         , description = Just "violet 🌺flower"
-                         }
-            , Just nothingPlant { id          = Just 3
-                         , name        = Just "leontopodium"
-                         , isTree      = Just False
-                         , year        = Just 1817
-                         , description = Just "tipical alpine flower"
-                         }
-            , Just nothingPlant { id          = Just 4
-                         , name        = Just "leucanthemum vulgare"
-                         , isTree      = Just False
-                         , year        = Just 1778
-                         , description = Just "very common flower in Italy 🍕"
-                         }
-            ]
+    plants @?= [ Just nothingPlant { id          = Just 2
+                                   , name        = Just "gentiana brentae"
+                                   , isTree      = Just False
+                                   , year        = Just 2008
+                                   , description = Just "violet 🌺flower"
+                                   }
+               , Just nothingPlant { id          = Just 3
+                                   , name        = Just "leontopodium"
+                                   , isTree      = Just False
+                                   , year        = Just 1817
+                                   , description = Just "tipical alpine flower"
+                                   }
+               , Just nothingPlant { id          = Just 4
+                                   , name        = Just "leucanthemum vulgare"
+                                   , isTree      = Just False
+                                   , year        = Just 1778
+                                   , description =
+                                         Just "very common flower in Italy 🍕"
+                                   , ratio       = Just 1.618
+                                   }
+               ]
 
 getByIdFromNotExistingCollectionTest :: IO Database -> TestTree
 getByIdFromNotExistingCollectionTest databaseIO =
