@@ -13,7 +13,6 @@ import           Foreign.C.String
 import           Foreign.C.Types
 import           Foreign.Marshal.Utils
 import           Data.Int
-import           Database.EJDB2.Bindings.Types.C.String
 
 #include <ejdb2/ejdb2.h>
 

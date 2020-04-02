@@ -36,7 +36,6 @@ library
                      , Database.EJDB2.Bindings.EJDB2
                      , Database.EJDB2.Bindings.JQL
                      , Database.EJDB2.Bindings.JBL
-                     , Database.EJDB2.Bindings.Types.C.String
                      , Database.EJDB2.Bindings.Types.EJDB
                      , Database.EJDB2.Bindings.Types.EJDBExec
                      , Database.EJDB2.Bindings.Types.EJDBDoc

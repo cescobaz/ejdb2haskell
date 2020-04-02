@@ -7,8 +7,6 @@ import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
-import           Database.EJDB2.Bindings.Types.C.String
-
 
 #include <ejdb2/ejdb2.h>
 -- | Index creation mode.
