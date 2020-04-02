@@ -38,27 +38,27 @@ getListTest' databaseIO = testCase "getList'" $ do
     query <- Query.fromString "@plants/[isTree=:tree] | asc /name"
     Query.setBool False "tree" query
     plants <- getList' database query
-    plants @?= [ Just nothingPlant { id          = Just 2
-                                   , name        = Just "gentiana brentae"
-                                   , isTree      = Just False
-                                   , year        = Just 2008
-                                   , description = Just "violet 🌺flower"
-                                   , ratio       = Nothing
-                                   }
-               , Just nothingPlant { id          = Just 3
-                                   , name        = Just "leontopodium"
-                                   , isTree      = Just False
-                                   , year        = Just 1817
-                                   , description = Just "tipical alpine flower"
-                                   , ratio       = Nothing
-                                   }
-               , Just nothingPlant { id          = Just 4
-                                   , name        = Just "leucanthemum vulgare"
-                                   , isTree      = Just False
-                                   , year        = Just 1778
-                                   , description =
-                                         Just "very common flower in Italy 🍕"
-                                   , ratio       = Just 1.618
-                                   }
+    plants @?= [ Just Plant { id          = Just 2
+                            , name        = Just "gentiana brentae"
+                            , isTree      = Just False
+                            , year        = Just 2008
+                            , description = Just "violet 🌺flower"
+                            , ratio       = Nothing
+                            }
+               , Just Plant { id          = Just 3
+                            , name        = Just "leontopodium"
+                            , isTree      = Just False
+                            , year        = Just 1817
+                            , description = Just "tipical alpine flower"
+                            , ratio       = Nothing
+                            }
+               , Just Plant { id          = Just 4
+                            , name        = Just "leucanthemum vulgare"
+                            , isTree      = Just False
+                            , year        = Just 1778
+                            , description =
+                                  Just "very common flower in Italy 🍕"
+                            , ratio       = Just 1.618
+                            }
                ]
 ```
