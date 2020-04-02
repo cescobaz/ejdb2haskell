@@ -61,6 +61,7 @@ test-suite ejdb2haskell-test
                        Asserts
                        Plant
                        GetTests
+                       QueryTests
                        PutTests
                        DeleteTests
                        CollectionTests
