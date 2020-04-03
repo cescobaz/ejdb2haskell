@@ -41,9 +41,9 @@ library
                      , Database.EJDB2.Bindings.Types.EJDBExec
                      , Database.EJDB2.Bindings.Types.EJDBDoc
   build-depends:       base ^>=4.12.0.0
-                     , bytestring ==0.10.10.0
-                     , aeson ==1.4.6.0
-                     , unordered-containers ==0.2.10.0
+                     , bytestring ^>=0.10.10.0
+                     , aeson ^>=1.4.6.0
+                     , unordered-containers ^>=0.2.10.0
   build-tool-depends:  hsc2hs:hsc2hs
   extra-libraries:     ejdb2
   pkgconfig-depends:   libejdb2
@@ -69,10 +69,10 @@ test-suite ejdb2haskell-test
                        IndexTests
                        OnlineBackupTests
   build-depends:       base ^>=4.12.0.0
-                     , tasty ==1.2.3
-                     , tasty-hunit ==0.10.0.2
-                     , aeson ==1.4.6.0
-                     , unordered-containers ==0.2.10.0
-                     , vector ==0.12.1.2
-                     , directory ==1.3.6.0
+                     , tasty ^>=1.2.3
+                     , tasty-hunit ^>=0.10.0.2
+                     , aeson ^>=1.4.6.0
+                     , unordered-containers ^>=0.2.10.0
+                     , vector ^>=0.12.1.2
+                     , directory ^>=1.3.6.0
                      , ejdb2-binding
