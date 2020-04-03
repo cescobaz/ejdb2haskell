@@ -1,7 +1,7 @@
 cabal-version:       2.4
 name:                ejdb2-binding
 category:            Database
-description:         Binding to EJDB2 C library, an embedded JSON noSQL database. Please see the README on GitHub at <https://github.com/cescobaz/ejdb2haskell#readme>
+description:         Binding to EJDB2 C library, an embedded JSON noSQL database. Package requires libejdb2 to build. Please see the README on GitHub at <https://github.com/cescobaz/ejdb2haskell#readme>
 synopsis:            Binding to EJDB2 C library, an embedded JSON noSQL database
 version:             0.1.0.0
 license:             MIT
