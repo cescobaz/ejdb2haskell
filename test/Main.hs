@@ -6,6 +6,8 @@ import           Database.EJDB2
 
 import           DeleteTests
 
+import           FoldTests
+
 import           GetTests
 
 import           IndexTests
@@ -32,4 +34,5 @@ tests = testGroup "ejdb2"
                   , CollectionTests.tests
                   , IndexTests.tests
                   , OnlineBackupTests.tests
+                  , FoldTests.tests
                   ]

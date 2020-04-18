@@ -28,6 +28,7 @@ module Database.EJDB2
     , ensureIndex
     , removeIndex
     , onlineBackup
+    , fold
     ) where
 
 import           Control.Exception
@@ -156,13 +157,15 @@ visitor' ref _ docPtr _ = do
     return 0
 
 exec :: (IORef [a] -> EJDBExecVisitor) -> Database -> Query -> IO [a]
-exec visitor (Database _ ejdb) (Query jql _ _) = do
-    ref <- newIORef []
-    visitor <- mkEJDBExecVisitor (visitor ref)
+exec visitor database query = newIORef [] >>= \ref ->
+    exec' (visitor ref) database query >> reverse <$> readIORef ref
+
+exec' :: EJDBExecVisitor -> Database -> Query -> IO ()
+exec' visitor (Database _ ejdb) (Query jql _ _) = do
+    visitor <- mkEJDBExecVisitor visitor
     let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
     finally (with exec $ \execPtr -> do
-                 c_ejdb_exec execPtr >>= checkRC
-                 reverse <$> readIORef ref)
+                 c_ejdb_exec execPtr >>= checkRC)
             (freeHaskellFunPtr visitor)
 
 {-|
@@ -321,3 +324,22 @@ onlineBackup :: Database
 onlineBackup (Database _ ejdb) filePath = withCString filePath $ \cFilePath ->
     alloca $ \timestampPtr -> c_ejdb_online_backup ejdb timestampPtr cFilePath
     >>= checkRC >> peek timestampPtr >>= \(CUIntMax t) -> return t
+
+fold :: Aeson.FromJSON b
+     => Database
+     -> (a -> (Int64, Maybe b) -> a)
+     -> a
+     -> Query
+     -> IO a
+fold database f i query = newIORef (f, i) >>= \ref ->
+    exec' (foldVisitor ref) database query >> snd <$> readIORef ref
+
+foldVisitor :: Aeson.FromJSON b
+            => IORef ((a -> (Int64, Maybe b) -> a), a)
+            -> EJDBExecVisitor
+foldVisitor ref _ docPtr _ = do
+    doc <- peek docPtr
+    value <- decode (raw doc)
+    modifyIORef' ref $
+        \(f, i) -> (f, f i (fromIntegral $ EJDBDoc.id doc, value))
+    return 0
