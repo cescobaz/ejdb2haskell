@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Database.EJDB2
     ( init
     , Database
@@ -36,6 +38,7 @@ import           Control.Monad
 
 import qualified Data.Aeson                             as Aeson
 import qualified Data.ByteString                        as BS
+import qualified Data.HashMap.Strict                    as Map
 import           Data.IORef
 import           Data.Int
 import           Data.Word
@@ -130,43 +133,67 @@ getCount (Database _ ejdb) (Query jql _ _) = alloca $
     \countPtr -> c_ejdb_count ejdb jql countPtr 0 >>= checkRC >> peek countPtr
     >>= \(CIntMax int) -> return int
 
+exec :: EJDBExecVisitor -> Database -> Query -> IO ()
+exec visitor (Database _ ejdb) (Query jql _ _) = do
+    visitor <- mkEJDBExecVisitor visitor
+    let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
+    finally (with exec c_ejdb_exec >>= checkRC) (freeHaskellFunPtr visitor)
+
+-- | Iterate over query result building the result
+fold :: Aeson.FromJSON b
+     => Database
+     -> (a
+         -> (Int64, Maybe b)
+         -> a) -- ^ The second argument is a tuple with the object id and the object
+     -> a -- ^ Initial result
+     -> Query
+     -> IO a
+fold database f i query = newIORef (f, i) >>= \ref ->
+    exec (foldVisitor ref) database query >> snd <$> readIORef ref
+
+foldVisitor :: Aeson.FromJSON b
+            => IORef ((a -> (Int64, Maybe b) -> a), a)
+            -> EJDBExecVisitor
+foldVisitor ref _ docPtr _ = do
+    doc <- peek docPtr
+    value <- decode (raw doc)
+    let id = fromIntegral $ EJDBDoc.id doc
+    modifyIORef' ref $ \(f, partial) -> (f, f partial (id, value))
+    return 0
+
 {-|
   Executes a given query and builds a query result as list of tuple with id and document.
 -}
 getList :: Aeson.FromJSON a => Database -> Query -> IO [(Int64, Maybe a)]
-getList = exec Database.EJDB2.visitor
+getList database query = reverse <$> fold database foldList [] query
 
-visitor :: Aeson.FromJSON a => IORef [(Int64, Maybe a)] -> EJDBExecVisitor
-visitor ref _ docPtr _ = do
-    doc <- peek docPtr
-    value <- decode (raw doc)
-    modifyIORef' ref $ \list -> (fromIntegral $ EJDBDoc.id doc, value) : list
-    return 0
+foldList :: Aeson.FromJSON a
+         => [(Int64, Maybe a)]
+         -> (Int64, Maybe a)
+         -> [(Int64, Maybe a)]
+foldList = flip (:)
 
 {-|
   Executes a given query and builds a query result as list of documents with id injected as attribute.
 -}
 getList' :: Aeson.FromJSON a => Database -> Query -> IO [Maybe a]
-getList' = exec Database.EJDB2.visitor'
+getList' database query = reverse <$> fold database foldList' [] query
 
-visitor' :: Aeson.FromJSON a => IORef [Maybe a] -> EJDBExecVisitor
-visitor' ref _ docPtr _ = do
-    doc <- peek docPtr
-    value <- decode' (raw doc) (fromIntegral $ EJDBDoc.id doc)
-    modifyIORef' ref $ \list -> value : list
-    return 0
+foldList'
+    :: Aeson.FromJSON a => [Maybe a] -> (Int64, Maybe Aeson.Value) -> [Maybe a]
+foldList' list (id, value) = parse (setId id value) : list
 
-exec :: (IORef [a] -> EJDBExecVisitor) -> Database -> Query -> IO [a]
-exec visitor database query = newIORef [] >>= \ref ->
-    exec' (visitor ref) database query >> reverse <$> readIORef ref
+parse :: Aeson.FromJSON a => Maybe Aeson.Value -> Maybe a
+parse Nothing = Nothing
+parse (Just value) = case Aeson.fromJSON value of
+    Aeson.Success v -> Just v
+    Aeson.Error _ -> Nothing
 
-exec' :: EJDBExecVisitor -> Database -> Query -> IO ()
-exec' visitor (Database _ ejdb) (Query jql _ _) = do
-    visitor <- mkEJDBExecVisitor visitor
-    let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
-    finally (with exec $ \execPtr -> do
-                 c_ejdb_exec execPtr >>= checkRC)
-            (freeHaskellFunPtr visitor)
+setId :: Int64 -> Maybe Aeson.Value -> Maybe Aeson.Value
+setId id (Just (Aeson.Object map)) =
+    Just (Aeson.Object (Map.insert "id" (Aeson.Number $ fromIntegral id) map))
+setId _ Nothing = Nothing
+setId _ value = value
 
 {-|
   Save new document into collection under new generated identifier.
@@ -325,21 +352,3 @@ onlineBackup (Database _ ejdb) filePath = withCString filePath $ \cFilePath ->
     alloca $ \timestampPtr -> c_ejdb_online_backup ejdb timestampPtr cFilePath
     >>= checkRC >> peek timestampPtr >>= \(CUIntMax t) -> return t
 
-fold :: Aeson.FromJSON b
-     => Database
-     -> (a -> (Int64, Maybe b) -> a)
-     -> a
-     -> Query
-     -> IO a
-fold database f i query = newIORef (f, i) >>= \ref ->
-    exec' (foldVisitor ref) database query >> snd <$> readIORef ref
-
-foldVisitor :: Aeson.FromJSON b
-            => IORef ((a -> (Int64, Maybe b) -> a), a)
-            -> EJDBExecVisitor
-foldVisitor ref _ docPtr _ = do
-    doc <- peek docPtr
-    value <- decode (raw doc)
-    modifyIORef' ref $
-        \(f, i) -> (f, f i (fromIntegral $ EJDBDoc.id doc, value))
-    return 0
