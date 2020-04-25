@@ -8,6 +8,14 @@ ejdb2haskell is a Haskell binding to [ejdb2](https://github.com/Softmotions/ejdb
 
 Install libejdb2 by installing [ejdb2](https://github.com/Softmotions/ejdb#use-cases)
 
+In Arch Linux I do:
+
+```bash
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+sudo make install
+```
+
 ## Build
 
 ```bash
