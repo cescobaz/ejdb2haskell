@@ -23,6 +23,7 @@ source-repository head
 library
   exposed-modules:     Database.EJDB2
                      , Database.EJDB2.Query
+                     , Database.EJDB2.QueryM
                      , Database.EJDB2.Meta
                      , Database.EJDB2.CollectionMeta
                      , Database.EJDB2.IndexMeta
@@ -45,6 +46,7 @@ library
                      , bytestring ^>=0.10.10.0
                      , aeson ^>=1.4.6.0
                      , unordered-containers ^>=0.2.10.0
+                     , mtl ^>=2.2.2
   build-tool-depends:  hsc2hs:hsc2hs
   extra-libraries:     ejdb2
   pkgconfig-depends:   libejdb2
