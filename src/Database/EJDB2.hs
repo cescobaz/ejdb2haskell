@@ -53,7 +53,6 @@ import           Database.EJDB2.JBL
 import qualified Database.EJDB2.KV                      as KV
 import           Database.EJDB2.Options                 as Options
 import           Database.EJDB2.Query
-import           Database.EJDB2.QueryConstructor
 import           Database.EJDB2.Result
 
 import           Foreign
@@ -128,16 +127,17 @@ getById (Database _ ejdb) collection id = alloca $ \jblPtr ->
             (c_jbl_destroy jblPtr)
 
 -- | Executes a given query and returns the number of documents.
-getCount :: Database -> Query -> IO Int64
-getCount (Database _ ejdb) (Query jql _ _) = alloca $
+getCount :: Database -> Query q -> IO Int64
+getCount (Database _ ejdb) query = withQuery query $ \jql -> alloca $
     \countPtr -> c_ejdb_count ejdb jql countPtr 0 >>= checkRC >> peek countPtr
     >>= \(CIntMax int) -> return int
 
-exec :: EJDBExecVisitor -> Database -> Query -> IO ()
-exec visitor (Database _ ejdb) (Query jql _ _) = do
-    visitor <- mkEJDBExecVisitor visitor
-    let exec = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = visitor }
-    finally (with exec c_ejdb_exec >>= checkRC) (freeHaskellFunPtr visitor)
+exec :: EJDBExecVisitor -> Database -> Query q -> IO ()
+exec visitor (Database _ ejdb) query = withQuery query $ \jql -> do
+    cVisitor <- mkEJDBExecVisitor visitor
+    let exec =
+            EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = cVisitor }
+    finally (with exec c_ejdb_exec >>= checkRC) (freeHaskellFunPtr cVisitor)
 
 -- | Iterate over query result building the result
 fold :: Aeson.FromJSON b
@@ -146,7 +146,7 @@ fold :: Aeson.FromJSON b
          -> (Int64, Maybe b)
          -> a) -- ^ The second argument is a tuple with the object id and the object
      -> a -- ^ Initial result
-     -> Query
+     -> Query q
      -> IO a
 fold database f i query = newIORef (f, i) >>= \ref ->
     exec (foldVisitor ref) database query >> snd <$> readIORef ref
@@ -164,7 +164,7 @@ foldVisitor ref _ docPtr _ = do
 {-|
   Executes a given query and builds a query result as list of tuple with id and document.
 -}
-getList :: Aeson.FromJSON a => Database -> Query -> IO [(Int64, Maybe a)]
+getList :: Aeson.FromJSON a => Database -> Query q -> IO [(Int64, Maybe a)]
 getList database query = reverse <$> fold database foldList [] query
 
 foldList :: Aeson.FromJSON a
@@ -176,7 +176,7 @@ foldList = flip (:)
 {-|
   Executes a given query and builds a query result as list of documents with id injected as attribute.
 -}
-getList' :: Aeson.FromJSON a => Database -> Query -> IO [Maybe a]
+getList' :: Aeson.FromJSON a => Database -> Query q -> IO [Maybe a]
 getList' database query = reverse <$> fold database foldList' [] query
 
 foldList'

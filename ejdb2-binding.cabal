@@ -23,7 +23,6 @@ source-repository head
 library
   exposed-modules:     Database.EJDB2
                      , Database.EJDB2.Query
-                     , Database.EJDB2.QueryM
                      , Database.EJDB2.Meta
                      , Database.EJDB2.CollectionMeta
                      , Database.EJDB2.IndexMeta
@@ -35,7 +34,6 @@ library
                        Database.EJDB2.JBL
                      , Database.EJDB2.Result
                      , Database.EJDB2.IndexMode
-                     , Database.EJDB2.QueryConstructor
                      , Database.EJDB2.Bindings.EJDB2
                      , Database.EJDB2.Bindings.JQL
                      , Database.EJDB2.Bindings.JBL

@@ -7,7 +7,7 @@ import           Data.Int
 
 import           Database.EJDB2
 import           Database.EJDB2.Options
-import qualified Database.EJDB2.Query   as Query
+import qualified Database.EJDB2.Query   as Q
 
 import           Plant
 
@@ -41,8 +41,8 @@ testReadOnlyDatabaseOpts =
 getListWithBoolQueryTest :: IO Database -> TestTree
 getListWithBoolQueryTest databaseIO = testCase "getListWithBoolQuery" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[isTree=:?] | asc /name"
-    Query.setBoolAtIndex False 0 query
+    let query = Q.Query "@plants/[isTree=:?] | asc /name"
+                        (Q.setBoolAtIndex False 0)
     plants <- getList database query
     plants
         @?= [ ( 2
@@ -77,8 +77,8 @@ getListWithBoolQueryTest databaseIO = testCase "getListWithBoolQuery" $ do
 getListWithI64QueryTest :: IO Database -> TestTree
 getListWithI64QueryTest databaseIO = testCase "getListWithI64Query" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[year>:year] | asc /name"
-    Query.setI64 1800 "year" query
+    let query = Q.Query "@plants/[year>:year] | asc /name"
+                        (Q.setI64 1800 "year")
     plants <- getList database query
     plants
         @?= [ ( 2
@@ -103,8 +103,8 @@ getListWithI64QueryTest databaseIO = testCase "getListWithI64Query" $ do
 getListWithI64AtIndexQueryTest :: IO Database -> TestTree
 getListWithI64AtIndexQueryTest databaseIO = testCase "getListWithI64AtIndexQuery" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[year>:?] | asc /name"
-    Query.setI64AtIndex 1800 0 query
+    let query = Q.Query "@plants/[year>:?] | asc /name"
+                        (Q.setI64AtIndex 1800 0)
     plants <- getList database query
     plants
         @?= [ ( 2
@@ -129,8 +129,8 @@ getListWithI64AtIndexQueryTest databaseIO = testCase "getListWithI64AtIndexQuery
 getListWithF64QueryTest :: IO Database -> TestTree
 getListWithF64QueryTest databaseIO = testCase "getListWithF64Query" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[ratio > :ratio] | asc /name"
-    Query.setF64 1.6 "ratio" query
+    let query = Q.Query "@plants/[ratio > :ratio] | asc /name"
+                        (Q.setF64 1.6 "ratio")
     plants <- getList database query
     plants @?= [ ( 4
                      , Just nothingPlant { id          = Nothing
@@ -148,8 +148,8 @@ getListWithF64AtIndexQueryTest :: IO Database -> TestTree
 getListWithF64AtIndexQueryTest databaseIO =
     testCase "getListWithF64AtIndexQuery" $ do
         database <- databaseIO
-        query <- Query.fromString "@plants/[ratio > :?] | asc /name"
-        Query.setF64AtIndex 1.6 0 query
+        let query = Q.Query "@plants/[ratio > :?] | asc /name"
+                            (Q.setF64AtIndex 1.6 0)
         plants <- getList database query
         plants @?= [ ( 4
                          , Just nothingPlant { id          = Nothing
@@ -166,8 +166,8 @@ getListWithF64AtIndexQueryTest databaseIO =
 getListWithStringQueryTest :: IO Database -> TestTree
 getListWithStringQueryTest databaseIO = testCase "getListWithStringQuery" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[name=:name] | asc /name"
-    Query.setString "pinus" "name" query
+    let query = Q.Query "@plants/[name=:name] | asc /name"
+                        (Q.setString "pinus" "name")
     plants <- getList database query
     plants @?= [ ( 1
                      , Just nothingPlant { id          = Nothing
@@ -183,8 +183,8 @@ getListWithStringAtIndexQueryTest :: IO Database -> TestTree
 getListWithStringAtIndexQueryTest databaseIO =
     testCase "getListWithStringAtIndexQuery" $ do
         database <- databaseIO
-        query <- Query.fromString "@plants/[name=:?] | asc /name"
-        Query.setStringAtIndex "pinus" 0 query
+        let query = Q.Query "@plants/[name=:?] | asc /name"
+                            (Q.setStringAtIndex "pinus" 0)
         plants <- getList database query
         plants @?= [ ( 1
                          , Just nothingPlant { id          = Nothing
@@ -199,9 +199,8 @@ getListWithStringAtIndexQueryTest databaseIO =
 getListWithRegexQueryTest :: IO Database -> TestTree
 getListWithRegexQueryTest databaseIO = testCase "getListWithRegexQuery" $ do
     database <- databaseIO
-    query
-        <- Query.fromString "@plants/[description re :description ] | asc /name"
-    Query.setRegex ".*Italy.*" "description" query
+    let query = Q.Query "@plants/[description re :description ] | asc /name"
+                        (Q.setRegex ".*Italy.*" "description")
     plants <- getList database query
     plants @?= [ ( 4
                      , Just nothingPlant { id          = Nothing
@@ -219,8 +218,8 @@ getListWithRegexAtIndexQueryTest :: IO Database -> TestTree
 getListWithRegexAtIndexQueryTest databaseIO =
     testCase "getListWithRegexAtIndexQuery" $ do
         database <- databaseIO
-        query <- Query.fromString "@plants/[description re :?] | asc /name"
-        Query.setRegexAtIndex "very.*Italy" 0 query
+        let query = Q.Query "@plants/[description re :?] | asc /name"
+                            (Q.setRegexAtIndex "very.*Italy" 0)
         plants <- getList database query
         plants @?= [ ( 4
                          , Just nothingPlant { id          = Nothing
@@ -237,8 +236,8 @@ getListWithRegexAtIndexQueryTest databaseIO =
 getListWithNullQueryTest :: IO Database -> TestTree
 getListWithNullQueryTest databaseIO = testCase "getListWithNullQuery" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[ratio=:ratio] | asc /name"
-    Query.setNull "ratio" query
+    let query = Q.Query "@plants/[ratio=:ratio] | asc /name"
+                        (Q.setNull "ratio")
     plants <- getList database query
     plants @?= [ ( 1
                      , Just nothingPlant { id          = Nothing
@@ -252,30 +251,28 @@ getListWithNullQueryTest databaseIO = testCase "getListWithNullQuery" $ do
                ]
 
 getListWithNullAtIndexQueryTest :: IO Database -> TestTree
-getListWithNullAtIndexQueryTest databaseIO =
-    testCase "getListWithNullAtIndexQuery" $ do
-        database <- databaseIO
-        query <- Query.fromString "@plants/[ratio=:?] | asc /name"
-        Query.setNullAtIndex 0 query
-        plants <- getList database query
-        plants @?= [ ( 1
-                         , Just nothingPlant { id          = Nothing
-                                             , name        = Just "pinus"
-                                             , isTree      = Just True
-                                             , year        = Just 1753
-                                             , description = Just "wow 🌲"
-                                             , ratio       = Nothing
-                                             }
-                         )
-                   ]
+getListWithNullAtIndexQueryTest databaseIO = testCase "getListWithNullAtIndexQuery" $ do
+    database <- databaseIO
+    let query = Q.Query "@plants/[ratio=:?] | asc /name" (Q.setNullAtIndex 0)
+    plants <- getList database query
+    plants @?= [ ( 1
+                     , Just nothingPlant { id          = Nothing
+                                         , name        = Just "pinus"
+                                         , isTree      = Just True
+                                         , year        = Just 1753
+                                         , description = Just "wow 🌲"
+                                         , ratio       = Nothing
+                                         }
+                     )
+               ]
 
 getListWithMixedQueryTest :: IO Database -> TestTree
 getListWithMixedQueryTest databaseIO = testCase "getListWithMixedQuery" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[year>:year] and /[isTree=:?] and /[name=:?] | asc /name"
-    Query.setI64 1700 "year" query
-    Query.setBoolAtIndex True 0 query
-    Query.setStringAtIndex "pinus" 1 query
+    let query = Q.Query "@plants/[year>:year] and /[isTree=:?] and /[name=:?] | asc /name" $ do
+            Q.setI64 1700 "year"
+            Q.setBoolAtIndex True 0
+            Q.setStringAtIndex "pinus" 1
     plants <- getList database query
     plants @?= [ ( 1
                      , Just nothingPlant { id          = Nothing
@@ -291,9 +288,9 @@ getListWithTwoStringsQueryTest :: IO Database -> TestTree
 getListWithTwoStringsQueryTest databaseIO =
     testCase "getListWithTwoStringsQuery" $ do
         database <- databaseIO
-        query <- Query.fromString "@plants/[description re :descr] and /[name=:name] | asc /name"
-        Query.setRegex ".*wow.*" "descr" query
-        Query.setString "pinus" "name" query
+        let query = Q.Query "@plants/[description re :descr] and /[name=:name] | asc /name" $ do
+                Q.setRegex ".*wow.*" "descr"
+                Q.setString "pinus" "name"
         plants <- getList database query
         plants @?= [ ( 1
                          , Just nothingPlant { id          = Nothing

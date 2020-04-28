@@ -10,7 +10,7 @@ import           Data.Int
 
 import           Database.EJDB2
 import           Database.EJDB2.Options
-import qualified Database.EJDB2.Query   as Query
+import qualified Database.EJDB2.Query   as Q
 
 import           Plant
 
@@ -55,19 +55,17 @@ getByIdNotFoundTest databaseIO = testCase "getById - not found" $ do
 getCountTest :: IO Database -> TestTree
 getCountTest databaseIO = testCase "getCount" $ do
     database <- databaseIO
-    count <- Query.fromString "@plants/*" >>= getCount database
+    count <- getCount database $ Q.Query "@plants/*" Q.noBind
     count @?= 4
 
-getListTestQuery :: IO Query.Query
-getListTestQuery = do
-    query <- Query.fromString "@plants/[isTree=:tree] | asc /name"
-    Query.setBool False "tree" query
-    return query
+getListTestQuery :: Q.Query ()
+getListTestQuery =
+    Q.Query "@plants/[isTree=:tree] | asc /name" $ Q.setBool False "tree"
 
 getListTest :: IO Database -> TestTree
 getListTest databaseIO = testCase "getList" $ do
     database <- databaseIO
-    plants <- getListTestQuery >>= getList database
+    plants <- getList database getListTestQuery
     plants
         @?= [ ( 2
                   , Just nothingPlant { id          = Nothing
@@ -101,7 +99,7 @@ getListTest databaseIO = testCase "getList" $ do
 getListTest' :: IO Database -> TestTree
 getListTest' databaseIO = testCase "getList'" $ do
     database <- databaseIO
-    plants <- getListTestQuery >>= getList' database
+    plants <- getList' database getListTestQuery
     plants @?= [ Just nothingPlant { id          = Just 2
                                    , name        = Just "gentiana brentae"
                                    , isTree      = Just False
@@ -137,7 +135,7 @@ getListFromNotExistingCollectionTest :: IO Database -> TestTree
 getListFromNotExistingCollectionTest databaseIO =
     testCase "getListFromNotExistingCollectionTest" $ do
         database <- databaseIO
-        query <- Query.fromString "@noexisting/[isTree=:tree] | asc /name"
-        Query.setBool False "tree" query
+        let query = Q.Query "@noexisting/[isTree=:tree] | asc /name" $
+                Q.setBool False "tree"
         list <- getList database query :: IO [(Int64, Maybe Value)]
         list @?= []
