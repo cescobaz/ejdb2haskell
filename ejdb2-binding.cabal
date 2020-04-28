@@ -12,8 +12,6 @@ copyright:           2020 Francesco Burelli
 author:              Francesco Burelli
 maintainer:          francesco.burelli@protonmail.com
 extra-source-files:  CHANGELOG.md
-                     cbits/finalizer.h
-                     cbits/finalizer.c
                      test/read-only-db
 
 source-repository head
@@ -48,9 +46,6 @@ library
   build-tool-depends:  hsc2hs:hsc2hs
   extra-libraries:     ejdb2
   pkgconfig-depends:   libejdb2
-  c-sources:           cbits/finalizer.c
-  install-includes:    finalizer.h
-  include-dirs:        cbits
   hs-source-dirs:      src
   default-language:    Haskell2010
 

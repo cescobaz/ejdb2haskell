@@ -31,6 +31,7 @@ import           Foreign.C.String
 import           Foreign.C.Types
 import           Foreign.Marshal.Alloc
 
+-- | Query data with binding. Collection must be specified in query.
 data Query a = Query String -- ^ Query text with collection
                      (BindM a)
 
@@ -52,11 +53,14 @@ freeBindState (BindState jql cStrings) = mapM_ free cStrings
     >> return (BindState jql [])
 
 withQuery :: Query a -> (JQL -> IO b) -> IO b
-withQuery (Query query bindM) f = createQuery query >>= \q@(jqlPtr, jql) ->
-    bind bindM (BindState jql []) >>= \bindState -> f jql
-    >>= \value -> destroyQuery q >> freeBindState bindState >> return value
+withQuery (Query query bindM) f = do
+    (jqlPtr, jql) <- createQuery query
+    bindState <- bind bindM (BindState jql [])
+    result <- f jql
+    destroyQuery jqlPtr
+    freeBindState bindState
+    return result
 
--- | Create query object from specified text query. Collection must be specified in query.
 createQuery :: String -- ^ Query text
             -> IO (Ptr JQL, JQL)
 createQuery string = do
@@ -66,8 +70,8 @@ createQuery string = do
         jql <- peek jqlPtr
         return (jqlPtr, jql)
 
-destroyQuery :: (Ptr JQL, JQL) -> IO ()
-destroyQuery (jqlPtr, jql) = c_jql_destroy jqlPtr >> free jqlPtr
+destroyQuery :: Ptr JQL -> IO ()
+destroyQuery jqlPtr = c_jql_destroy jqlPtr >> free jqlPtr
 
 -- | Bind bool to query placeholder
 setBool :: Bool
