@@ -31,6 +31,20 @@ module Database.EJDB2
     , removeIndex
     , onlineBackup
     , fold
+    , Query(..)
+    , noBind
+    , setBool
+    , setBoolAtIndex
+    , setI64
+    , setI64AtIndex
+    , setF64
+    , setF64AtIndex
+    , setString
+    , setStringAtIndex
+    , setRegex
+    , setRegexAtIndex
+    , setNull
+    , setNullAtIndex
     ) where
 
 import           Control.Exception

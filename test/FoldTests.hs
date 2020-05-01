@@ -4,7 +4,6 @@ import           Data.Int
 
 import qualified Database.EJDB2         as DB
 import           Database.EJDB2.Options
-import qualified Database.EJDB2.Query   as Q
 
 import           Plant
 
@@ -24,7 +23,7 @@ testReadOnlyDatabaseOpts =
 foldOnIsTreeTest :: IO DB.Database -> TestTree
 foldOnIsTreeTest databaseIO = testCase "foldOnIsTree" $ do
     database <- databaseIO
-    let query = Q.Query "@plants/*" Q.noBind
+    let query = DB.Query "@plants/*" DB.noBind
     result <- DB.fold database foldOnIsTree (0, 0) query
     result @?= (1, 3)
 

@@ -4,7 +4,6 @@ import           Asserts
 
 import           Database.EJDB2
 import           Database.EJDB2.Options
-import qualified Database.EJDB2.Query   as Q
 
 import           Plant
 
@@ -29,7 +28,7 @@ removeTest databaseIO = testCase "removeTest" $ do
     database <- databaseIO
     id <- putNew database "plants" plant
     removeCollection database "plants"
-    count <- getCount database $ Q.Query "@plants/*" Q.noBind
+    count <- getCount database $ Query "@plants/*" noBind
     count @?= 0
   where
     plant = nothingPlant { id          = Nothing
@@ -44,7 +43,7 @@ renameTest databaseIO = testCase "renameTest" $ do
     database <- databaseIO
     id <- putNew database "plants" plant
     renameCollection database "plants" "vegetables"
-    count <- getCount database $ Q.Query "@plants/*" Q.noBind
+    count <- getCount database $ Query "@plants/*" noBind
     count @?= 0
     storedPlant <- getById database "vegetables" id
     storedPlant @?= Just plant

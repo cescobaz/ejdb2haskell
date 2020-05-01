@@ -10,7 +10,6 @@ import           Data.Int
 
 import           Database.EJDB2
 import           Database.EJDB2.Options
-import qualified Database.EJDB2.Query   as Q
 
 import           Plant
 
@@ -55,12 +54,12 @@ getByIdNotFoundTest databaseIO = testCase "getById - not found" $ do
 getCountTest :: IO Database -> TestTree
 getCountTest databaseIO = testCase "getCount" $ do
     database <- databaseIO
-    count <- getCount database $ Q.Query "@plants/*" Q.noBind
+    count <- getCount database $ Query "@plants/*" noBind
     count @?= 4
 
-getListTestQuery :: Q.Query ()
+getListTestQuery :: Query ()
 getListTestQuery =
-    Q.Query "@plants/[isTree=:tree] | asc /name" $ Q.setBool False "tree"
+    Query "@plants/[isTree=:tree] | asc /name" $ setBool False "tree"
 
 getListTest :: IO Database -> TestTree
 getListTest databaseIO = testCase "getList" $ do
@@ -135,7 +134,7 @@ getListFromNotExistingCollectionTest :: IO Database -> TestTree
 getListFromNotExistingCollectionTest databaseIO =
     testCase "getListFromNotExistingCollectionTest" $ do
         database <- databaseIO
-        let query = Q.Query "@noexisting/[isTree=:tree] | asc /name" $
-                Q.setBool False "tree"
+        let query = Query "@noexisting/[isTree=:tree] | asc /name" $
+                setBool False "tree"
         list <- getList database query :: IO [(Int64, Maybe Value)]
         list @?= []

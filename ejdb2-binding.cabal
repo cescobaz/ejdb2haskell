@@ -3,7 +3,7 @@ name:                ejdb2-binding
 category:            Database
 description:         Binding to EJDB2 C library, an embedded JSON noSQL database. Package requires libejdb2 to build. Please see the README on GitHub at <https://github.com/cescobaz/ejdb2haskell#readme>
 synopsis:            Binding to EJDB2 C library, an embedded JSON noSQL database
-version:             0.2.0.0
+version:             0.3.0.0
 license:             MIT
 license-file:        LICENSE
 homepage:            https://github.com/cescobaz/ejdb2haskell#readme
@@ -20,7 +20,6 @@ source-repository head
 
 library
   exposed-modules:     Database.EJDB2
-                     , Database.EJDB2.Query
                      , Database.EJDB2.Meta
                      , Database.EJDB2.CollectionMeta
                      , Database.EJDB2.IndexMeta
@@ -29,7 +28,8 @@ library
                      , Database.EJDB2.WAL
                      , Database.EJDB2.KV
   other-modules:
-                       Database.EJDB2.JBL
+                       Database.EJDB2.Query
+                     , Database.EJDB2.JBL
                      , Database.EJDB2.Result
                      , Database.EJDB2.IndexMode
                      , Database.EJDB2.Bindings.EJDB2
