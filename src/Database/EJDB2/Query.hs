@@ -1,5 +1,6 @@
 module Database.EJDB2.Query
     ( Query(..)
+    , BindM
     , withQuery
     , noBind
     , setBool
@@ -37,6 +38,7 @@ data Query a = Query String -- ^ Query text with collection
 
 data BindState = BindState JQL [CString]
 
+-- | Monad to apply binding to 'Query'
 type BindM a = StateT BindState IO a
 
 bind :: BindM a -> BindState -> IO BindState

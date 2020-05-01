@@ -21,7 +21,7 @@ data Options = Options { enabled :: !Bool -- ^ If HTTP\/Websocket endpoint enabl
                        , port :: !Int32 -- ^ Listen port number, required
                        , bind :: Maybe String -- ^ Listen IP\/host. Default: /localhost/
                        , accessToken :: Maybe String -- ^ Server access token passed in /X-Access-Token/ header. Default: zero
-                       , blocking :: !Bool -- ^ Block 'open' thread until http service finished.
+                       , blocking :: !Bool -- ^ Block open thread until http service finished.
 -- Otherwise HTTP servee started in background.
 
                        , readAnon :: !Bool -- ^ Allow anonymous read-only database access
