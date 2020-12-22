@@ -32,6 +32,7 @@ module Database.EJDB2
     , onlineBackup
     , fold
     , Query(..)
+    , BindM
     , noBind
     , setBool
     , setBoolAtIndex
