@@ -21,7 +21,6 @@ import           Control.Monad.IO.Class
 import           Control.Monad.State.Lazy
 
 import qualified Data.Bool                   as Bool
-import           Data.IORef
 import           Data.Int
 
 import           Database.EJDB2.Bindings.JQL
@@ -30,7 +29,6 @@ import           Database.EJDB2.Result
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
-import           Foreign.Marshal.Alloc
 
 -- | Query data with binding. Collection must be specified in query.
 data Query a = Query String -- ^ Query text with collection
@@ -42,11 +40,12 @@ data BindState = BindState JQL [CString]
 type BindM a = StateT BindState IO a
 
 bind :: BindM a -> BindState -> IO BindState
-bind bindM state = execStateT bindM state
+bind = execStateT
 
 getJQL :: BindM JQL
 getJQL = get >>= \(BindState jql _) -> return jql
 
+-- | Create empty bind
 noBind :: BindM ()
 noBind = return ()
 
