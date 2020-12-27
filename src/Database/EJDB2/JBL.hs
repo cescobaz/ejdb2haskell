@@ -16,28 +16,28 @@ import           Foreign.C.Types
 import           Foreign.Marshal.Array
 
 decode :: Aeson.FromJSON a => JBL -> IO (Maybe a)
-decode jbl = Aeson.decode' <$> decodeToByteString jbl
+decode jbl = Aeson.decodeStrict' <$> decodeToByteString jbl
 
-decodeToByteString :: JBL -> IO BSL.ByteString
+decodeToByteString :: JBL -> IO BS.ByteString
 decodeToByteString jbl = do
-    ref <- newIORef BSL.empty
+    ref <- newIORef BS.empty
     thePrinter <- mkJBLJSONPrinter (printer ref)
     c_jbl_as_json jbl thePrinter nullPtr 0
         >>= Result.checkRCFinally (freeHaskellFunPtr thePrinter)
-    BSL.reverse <$> readIORef ref
+    readIORef ref
 
-printer :: IORef BSL.ByteString -> JBLJSONPrinter
+printer :: IORef BS.ByteString -> JBLJSONPrinter
 printer ref _ 0 (CChar ch) _ _ = do
-    modifyIORef' ref (BSL.cons' (fromIntegral ch))
+    modifyIORef' ref (flip BS.snoc (fromIntegral ch))
     return 0
 printer ref buffer size _ _ _
     | size > 0 = peekArray (fromIntegral size) buffer >>= printerArray ref
     | otherwise = peekArray0 (CChar 0) buffer >>= printerArray ref
 
-printerArray :: IORef BSL.ByteString -> [CChar] -> IO Result.RC
+printerArray :: IORef BS.ByteString -> [CChar] -> IO Result.RC
 printerArray ref array = do
     modifyIORef' ref $ \string ->
-        foldl (\result (CChar ch) -> BSL.cons' (fromIntegral ch) result)
+        foldl (\result (CChar ch) -> BS.snoc result (fromIntegral ch))
               string
               array
     return 0
