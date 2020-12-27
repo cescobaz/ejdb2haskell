@@ -16,7 +16,7 @@ import           Foreign.C.Types
 import           Foreign.Marshal.Array
 
 decode :: Aeson.FromJSON a => JBL -> IO (Maybe a)
-decode jbl = Aeson.decode <$> decodeToByteString jbl
+decode jbl = Aeson.decode' <$> decodeToByteString jbl
 
 decodeToByteString :: JBL -> IO BSL.ByteString
 decodeToByteString jbl = do
@@ -28,22 +28,16 @@ decodeToByteString jbl = do
 
 printer :: IORef BSL.ByteString -> JBLJSONPrinter
 printer ref _ 0 (CChar ch) _ _ = do
-    modifyIORef' ref $ \string -> BSL.cons word string
+    modifyIORef' ref (BSL.cons' (fromIntegral ch))
     return 0
-  where
-    word = fromIntegral ch
 printer ref buffer size _ _ _
-    | size > 0 = do
-        array <- peekArray (fromIntegral size) buffer
-        printerArray ref array
-    | otherwise = do
-        array <- peekArray0 (CChar 0) buffer
-        printerArray ref array
+    | size > 0 = peekArray (fromIntegral size) buffer >>= printerArray ref
+    | otherwise = peekArray0 (CChar 0) buffer >>= printerArray ref
 
 printerArray :: IORef BSL.ByteString -> [CChar] -> IO Result.RC
 printerArray ref array = do
     modifyIORef' ref $ \string ->
-        foldl (\result (CChar ch) -> BSL.cons (fromIntegral ch) result)
+        foldl (\result (CChar ch) -> BSL.cons' (fromIntegral ch) result)
               string
               array
     return 0
