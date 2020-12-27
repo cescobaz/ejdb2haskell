@@ -4,48 +4,46 @@ import           Control.Exception
 
 import qualified Data.Aeson                  as Aeson
 import qualified Data.ByteString             as BS
+import qualified Data.ByteString.Builder     as B
 import qualified Data.ByteString.Lazy        as BSL
+import           Data.Foldable
 import           Data.IORef
-import           Data.Int
 
 import           Database.EJDB2.Bindings.JBL
 import qualified Database.EJDB2.Result       as Result
 
 import           Foreign
 import           Foreign.C.Types
-import           Foreign.Marshal.Array
 
 decode :: Aeson.FromJSON a => JBL -> IO (Maybe a)
-decode jbl = Aeson.decode <$> decodeToByteString jbl
+decode jbl = Aeson.decode' . B.toLazyByteString <$> decodeToBuilder jbl
 
-decodeToByteString :: JBL -> IO BSL.ByteString
-decodeToByteString jbl = do
-    ref <- newIORef BSL.empty
-    thePrinter <- mkJBLJSONPrinter (printer ref)
+decodeToBuilder :: JBL -> IO B.Builder
+decodeToBuilder jbl = do
+    ref <- newIORef mempty
+    thePrinter <- mkJBLJSONPrinter (builderPrinter ref)
     c_jbl_as_json jbl thePrinter nullPtr 0
         >>= Result.checkRCFinally (freeHaskellFunPtr thePrinter)
-    BSL.reverse <$> readIORef ref
+    readIORef ref
 
-printer :: IORef BSL.ByteString -> JBLJSONPrinter
-printer ref _ 0 (CChar ch) _ _ = do
-    modifyIORef' ref $ \string -> BSL.cons word string
+builderPrinter :: IORef B.Builder -> JBLJSONPrinter
+builderPrinter ref _ 0 (CChar ch) _ _ = do
+    modifyIORef' ref $ \builder -> builder <> B.word8 (fromIntegral ch)
     return 0
-  where
-    word = fromIntegral ch
-printer ref buffer size _ _ _
+builderPrinter ref buffer size _ _ _
     | size > 0 = do
         array <- peekArray (fromIntegral size) buffer
-        printerArray ref array
+        builderPrinterArray ref array
     | otherwise = do
         array <- peekArray0 (CChar 0) buffer
-        printerArray ref array
+        builderPrinterArray ref array
 
-printerArray :: IORef BSL.ByteString -> [CChar] -> IO Result.RC
-printerArray ref array = do
-    modifyIORef' ref $ \string ->
-        foldl (\result (CChar ch) -> BSL.cons (fromIntegral ch) result)
-              string
-              array
+builderPrinterArray :: IORef B.Builder -> [CChar] -> IO Result.RC
+builderPrinterArray ref array = do
+    modifyIORef' ref $ \builder ->
+        foldl' (\result (CChar ch) -> result <> B.word8 (fromIntegral ch))
+               builder
+               array
     return 0
 
 encode :: Aeson.ToJSON a => a -> (JBL -> IO b) -> IO b
