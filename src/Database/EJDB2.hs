@@ -73,9 +73,6 @@ import           Database.EJDB2.Result
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
-import           Foreign.Marshal.Alloc
-import           Foreign.Ptr
-import           Foreign.Storable
 
 import           Prelude                                hiding ( init )
 

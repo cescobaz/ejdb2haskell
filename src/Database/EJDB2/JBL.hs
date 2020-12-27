@@ -6,14 +6,12 @@ import qualified Data.Aeson                  as Aeson
 import qualified Data.ByteString             as BS
 import qualified Data.ByteString.Lazy        as BSL
 import           Data.IORef
-import           Data.Int
 
 import           Database.EJDB2.Bindings.JBL
 import qualified Database.EJDB2.Result       as Result
 
 import           Foreign
 import           Foreign.C.Types
-import           Foreign.Marshal.Array
 
 decode :: Aeson.FromJSON a => JBL -> IO (Maybe a)
 decode jbl = Aeson.decode' <$> decodeToByteString jbl

@@ -4,7 +4,6 @@ module Database.EJDB2.WAL (Options(..), zero) where
 
 
 import           Foreign
-import           Foreign.C.String
 import           Foreign.C.Types
 
 import Database.EJDB2.Result

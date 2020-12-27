@@ -6,7 +6,6 @@ module Database.EJDB2.Bindings.Types.EJDBExec where
 import           Prelude           hiding ( log )
 
 import           Foreign
-import           Foreign.C.String
 import           Foreign.C.Types
 
 import           Database.EJDB2.Bindings.Types.EJDB

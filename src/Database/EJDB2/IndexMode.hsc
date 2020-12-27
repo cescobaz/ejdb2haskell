@@ -4,7 +4,6 @@ module Database.EJDB2.IndexMode where
 
 
 import           Foreign
-import           Foreign.C.String
 import           Foreign.C.Types
 
 
