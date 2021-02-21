@@ -13,23 +13,21 @@ module Database.EJDB2.JBL
     , encodeToByteString
     ) where
 
-import           Control.Exception
 import           Control.Monad.State.Lazy
 
 import qualified Data.Aeson                  as Aeson
 import qualified Data.ByteString             as BS
 import qualified Data.ByteString.Lazy        as BSL
-import           Data.IORef
 import           Data.Typeable
 
 import           Database.EJDB2.Bindings.JBL
 import           Database.EJDB2.Result
-import qualified Database.EJDB2.Result       as Result
 
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
 
+import           GHC.Float
 import           GHC.Generics
 
 class FromJBL a where
@@ -91,8 +89,8 @@ setJBLBool = setJBLProperty c_jbl_set_bool . CBool . fromBool
 setJBLDouble :: Double -> SerializationM ()
 setJBLDouble = setJBLProperty c_jbl_set_f64 . CDouble
 
-setJBLInteger :: Integer -> SerializationM ()
-setJBLInteger = setJBLProperty c_jbl_set_int64 . fromInteger
+setJBLIntegral :: (Integral a) => a -> SerializationM ()
+setJBLIntegral = setJBLProperty c_jbl_set_int64 . fromIntegral
 
 setJBLString :: String -> SerializationM ()
 setJBLString string = pushCString string >>= setJBLProperty c_jbl_set_string
@@ -155,7 +153,16 @@ instance ToJBL c => ToJBL (Maybe c) where
     serialize (Just a) = serialize a
 
 instance ToJBL Int where
-    serialize = setJBLInteger . toInteger
+    serialize = setJBLIntegral
+
+instance ToJBL Integer where
+    serialize = setJBLIntegral
+
+instance ToJBL Double where
+    serialize = setJBLDouble
+
+instance ToJBL Float where
+    serialize = setJBLDouble . float2Double
 
 instance ToJBL Bool where
     serialize = setJBLBool
