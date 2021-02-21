@@ -3,6 +3,7 @@
 module Database.EJDB2
     ( init
     , Database
+    , EJDB2IDObject
     , KV.readonlyOpenFlags
     , KV.truncateOpenFlags
     , KV.noTrimOnCloseOpenFlags
@@ -79,6 +80,9 @@ import           Prelude                                hiding ( init )
 -- | Reference to database. You can create it by 'open'.
 data Database = Database (Ptr EJDB) EJDB
 
+class EJDB2IDObject a where
+    setId :: Int64 -> a -> a
+
 -- | Create minimal 'Options' for opening a database: just path to file and opening mode.
 minimalOptions :: String -- ^ Database file path 
                -> [KV.OpenFlags] -- ^ Open mode
@@ -122,7 +126,7 @@ close (Database ejdbPtr _) = do
     if result == Ok then free ejdbPtr else fail $ show result
 
 -- | Retrieve document identified by given id from collection.
-getById :: Aeson.FromJSON a
+getById :: FromJBL a
         => Database
         -> String -- ^ Collection name
         -> Int64 -- ^ Document identifier. Not zero
@@ -152,7 +156,7 @@ exec visitor (Database _ ejdb) query = withQuery query $ \jql -> do
     finally (with exec c_ejdb_exec >>= checkRC) (freeHaskellFunPtr cVisitor)
 
 -- | Iterate over query result building the result
-fold :: Aeson.FromJSON b
+fold :: FromJBL b
      => Database
      -> (a
          -> (Int64, Maybe b)
@@ -163,9 +167,8 @@ fold :: Aeson.FromJSON b
 fold database f i query = newIORef (f, i) >>= \ref ->
     exec (foldVisitor ref) database query >> snd <$> readIORef ref
 
-foldVisitor :: Aeson.FromJSON b
-            => IORef ((a -> (Int64, Maybe b) -> a), a)
-            -> EJDBExecVisitor
+foldVisitor
+    :: FromJBL b => IORef ((a -> (Int64, Maybe b) -> a), a) -> EJDBExecVisitor
 foldVisitor ref _ docPtr _ = do
     doc <- peek docPtr
     value <- decode (raw doc)
@@ -176,10 +179,10 @@ foldVisitor ref _ docPtr _ = do
 {-|
   Executes a given query and builds a query result as list of tuple with id and document.
 -}
-getList :: Aeson.FromJSON a => Database -> Query q -> IO [(Int64, Maybe a)]
+getList :: FromJBL a => Database -> Query q -> IO [(Int64, Maybe a)]
 getList database query = reverse <$> fold database foldList [] query
 
-foldList :: Aeson.FromJSON a
+foldList :: FromJBL a
          => [(Int64, Maybe a)]
          -> (Int64, Maybe a)
          -> [(Int64, Maybe a)]
@@ -188,29 +191,19 @@ foldList = flip (:)
 {-|
   Executes a given query and builds a query result as list of documents with id injected as attribute.
 -}
-getList' :: Aeson.FromJSON a => Database -> Query q -> IO [Maybe a]
+getList' :: (FromJBL a, EJDB2IDObject a) => Database -> Query q -> IO [Maybe a]
 getList' database query = reverse <$> fold database foldList' [] query
 
-foldList'
-    :: Aeson.FromJSON a => [Maybe a] -> (Int64, Maybe Aeson.Value) -> [Maybe a]
-foldList' list (id, value) = parse (setId id value) : list
-
-parse :: Aeson.FromJSON a => Maybe Aeson.Value -> Maybe a
-parse Nothing = Nothing
-parse (Just value) = case Aeson.fromJSON value of
-    Aeson.Success v -> Just v
-    Aeson.Error _ -> Nothing
-
-setId :: Int64 -> Maybe Aeson.Value -> Maybe Aeson.Value
-setId id (Just (Aeson.Object map)) =
-    Just (Aeson.Object (Map.insert "id" (Aeson.Number $ fromIntegral id) map))
-setId _ Nothing = Nothing
-setId _ value = value
+foldList' :: (FromJBL a, EJDB2IDObject a)
+          => [Maybe a]
+          -> (Int64, Maybe a)
+          -> [Maybe a]
+foldList' list (id, value) = (setId id <$> value) : list
 
 {-|
   Save new document into collection under new generated identifier.
 -}
-putNew :: Aeson.ToJSON a
+putNew :: ToJBL a
        => Database
        -> String -- ^ Collection name
        -> a -- ^ Document
@@ -224,7 +217,7 @@ putNew (Database _ ejdb) collection obj = encode obj $
 {-|
   Save a given document under specified id.
 -}
-put :: Aeson.ToJSON a
+put :: ToJBL a
     => Database
     -> String -- ^ Collection name
     -> a -- ^ Document
@@ -305,7 +298,7 @@ renameCollection (Database _ ejdb) collection newCollection =
 {-|
   Returns JSON document describing database structure. You can use the convenient data 'Database.EJDB2.Meta.Meta'
 -}
-getMeta :: Aeson.FromJSON a
+getMeta :: FromJBL a
         => Database
         -> IO (Maybe a) -- ^ JSON object describing ejdb storage. See data 'Database.EJDB2.Meta.Meta'
 

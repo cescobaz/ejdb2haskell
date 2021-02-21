@@ -2,7 +2,7 @@
 
 module Plant where
 
-import           Data.Aeson   ( FromJSON, ToJSON )
+import           Data.Aeson   ( FromJBL, ToJBL )
 
 import           GHC.Generics
 
@@ -17,9 +17,9 @@ data Plant = Plant { id          :: Maybe Int
                    }
     deriving ( Eq, Generic, Show )
 
-instance FromJSON Plant
+instance FromJBL Plant
 
-instance ToJSON Plant
+instance ToJBL Plant
 
 nothingPlant :: Plant
 nothingPlant = Plant Nothing Nothing Nothing Nothing Nothing Nothing

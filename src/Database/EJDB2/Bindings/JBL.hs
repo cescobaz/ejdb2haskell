@@ -28,3 +28,32 @@ foreign import ccall unsafe "ejdb2/jbl.h jbl_destroy" c_jbl_destroy
 foreign import ccall "ejdb2/jbl.h jbl_from_json" c_jbl_from_json
     :: Ptr JBL -> CString -> IO RC
 
+foreign import ccall "ejdb2/jbl.h jbl_create_empty_object" c_jbl_create_empty_object
+    :: Ptr JBL -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_create_empty_array" c_jbl_create_empty_array
+    :: Ptr JBL -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_set_int64" c_jbl_set_int64
+    :: JBL -> CString -> CLong -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_set_f64" c_jbl_set_f64
+    :: JBL -> CString -> CDouble -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_set_string" c_jbl_set_string
+    :: JBL -> CString -> CString -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_set_bool" c_jbl_set_bool
+    :: JBL -> CString -> CBool -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_set_null" c_jbl_set_null
+    :: JBL -> CString -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_set_empty_array" c_jbl_set_empty_array
+    :: JBL -> CString -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_set_empty_object" c_jbl_set_empty_object
+    :: JBL -> CString -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_set_nested" c_jbl_set_nested
+    :: JBL -> CString -> JBL -> IO RC

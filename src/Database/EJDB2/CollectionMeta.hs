@@ -3,10 +3,10 @@
 
 module Database.EJDB2.CollectionMeta where
 
-import           Data.Aeson               ( FromJSON )
 import           Data.Int
 
 import           Database.EJDB2.IndexMeta
+import           Database.EJDB2.JBL
 
 import           GHC.Generics
 
@@ -19,5 +19,5 @@ data CollectionMeta =
                    }
     deriving ( Eq, Generic, Show )
 
-instance FromJSON CollectionMeta
+instance FromJBL CollectionMeta
 

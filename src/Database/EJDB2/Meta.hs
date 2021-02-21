@@ -2,10 +2,10 @@
 
 module Database.EJDB2.Meta where
 
-import           Data.Aeson                    ( FromJSON )
 import           Data.Int
 
 import           Database.EJDB2.CollectionMeta
+import           Database.EJDB2.JBL
 
 import           GHC.Generics                  hiding ( Meta )
 
@@ -18,5 +18,5 @@ data Meta =
          }
     deriving ( Eq, Generic, Show )
 
-instance FromJSON Meta
+instance FromJBL Meta
 
