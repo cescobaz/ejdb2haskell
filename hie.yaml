@@ -1,0 +1,6 @@
+cradle:
+  cabal:
+    - path: "./src"
+      component: "lib:ejdb2-binding"
+    - path: "./test"
+      component: "test:ejdb2haskell-test"
