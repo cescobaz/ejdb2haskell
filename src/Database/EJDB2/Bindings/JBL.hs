@@ -10,6 +10,8 @@ import           Foreign.C.Types
 
 type JBL = Ptr ()
 
+type JBLIterator = Ptr ()
+
 type JBLNode = Ptr ()
 
 type JBLPrintFlags = CUChar
@@ -57,3 +59,12 @@ foreign import ccall "ejdb2/jbl.h jbl_set_empty_object" c_jbl_set_empty_object
 
 foreign import ccall "ejdb2/jbl.h jbl_set_nested" c_jbl_set_nested
     :: JBL -> CString -> JBL -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_create_iterator_holder" c_jbl_create_iterator_holder
+    :: Ptr JBL -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_iterator_init" c_jbl_iterator_init
+    :: JBL -> Ptr JBLIterator -> IO RC
+
+foreign import ccall "ejdb2/jbl.h jbl_iterator_next" c_jbl_iterator_next
+    :: Ptr JBLIterator -> JBL -> Ptr CString -> Ptr CInt -> IO CBool
