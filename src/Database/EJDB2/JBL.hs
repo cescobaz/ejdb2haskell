@@ -95,14 +95,14 @@ setJBLIntegral = setJBLProperty c_jbl_set_int64 . fromIntegral
 setJBLString :: String -> SerializationM ()
 setJBLString string = pushCString string >>= setJBLProperty c_jbl_set_string
 
-createJQLObject :: IO (Ptr JBL)
-createJQLObject = do
+createJBLObject :: IO (Ptr JBL)
+createJBLObject = do
     jblPtr <- malloc
     c_jbl_create_empty_object jblPtr >>= checkRC
     return jblPtr
 
-createJQLArray :: IO (Ptr JBL)
-createJQLArray = do
+createJBLArray :: IO (Ptr JBL)
+createJBLArray = do
     jblPtr <- malloc
     c_jbl_create_empty_array jblPtr >>= checkRC
     return jblPtr
@@ -110,7 +110,13 @@ createJQLArray = do
 class ToJBL a where
     serialize :: a -> SerializationM ()
     default serialize :: (Generic a, GToJBL (Rep a)) => a -> SerializationM ()
-    serialize a = gserialize (from a)
+    serialize a = do
+        jblPtr <- getJBLPtr
+        liftIO createJBLObject >>= \jblObjectPtr -> do
+            liftIO (peek jblObjectPtr) >>= setJBLNested
+            pushJBLPtr jblObjectPtr
+        gserialize (from a)
+        setJBLPtr jblPtr
 
 class GToJBL f where
     gserialize :: f a -> SerializationM ()
@@ -173,7 +179,7 @@ instance ToJBL String where
 instance {-# OVERLAPPABLE #-}ToJBL c => ToJBL [c] where
     serialize array = do
         jblPtr <- getJBLPtr
-        liftIO createJQLArray >>= \jblArrayPtr -> do
+        liftIO createJBLArray >>= \jblArrayPtr -> do
             liftIO (peek jblArrayPtr) >>= setJBLNested
             pushJBLPtr jblArrayPtr
         mapM_ serialize array
