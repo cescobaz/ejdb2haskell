@@ -2,7 +2,7 @@
 
 module Database.EJDB2.Bindings.JBL where
 
-import           Database.EJDB2.JBLIterator
+import           Database.EJDB2.Bindings.JBLStruct
 import           Database.EJDB2.Result
 
 import           Foreign
@@ -16,8 +16,6 @@ type JBLNode = Ptr ()
 type JBLPrintFlags = CUChar
 
 type JBLJSONPrinter = Ptr CChar -> CInt -> CChar -> CInt -> Ptr () -> IO RC
-
-type JBLTypeT = CInt
 
 foreign import ccall "wrapper" mkJBLJSONPrinter
     :: JBLJSONPrinter -> IO (FunPtr JBLJSONPrinter)
