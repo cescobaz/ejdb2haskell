@@ -30,6 +30,8 @@ library
   other-modules:
                        Database.EJDB2.Query
                      , Database.EJDB2.JBL
+                     , Database.EJDB2.JBLDeserialization
+                     , Database.EJDB2.Bindings.JBLStruct
                      , Database.EJDB2.Result
                      , Database.EJDB2.IndexMode
                      , Database.EJDB2.Bindings.EJDB2
@@ -48,6 +50,7 @@ library
   pkgconfig-depends:   libejdb2
   hs-source-dirs:      src
   default-language:    Haskell2010
+  ghc-options:         -Wunused-imports
 
 test-suite ejdb2haskell-test
   default-language:    Haskell2010
