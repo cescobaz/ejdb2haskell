@@ -3,21 +3,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Database.EJDB2.JBLDeserialization
-    ( FromJBL
-    , FromJBL
-    , decode
-    , encode
-    , encodeToByteString
-    ) where
+module Database.EJDB2.JBLDeserialization ( FromJBL ) where
 
 import           Control.Monad.State.Lazy
 
-import qualified Data.Aeson                        as Aeson
-import qualified Data.ByteString                   as BS
-import qualified Data.ByteString.Lazy              as BSL
 import           Data.Typeable
 
 import           Database.EJDB2.Bindings.JBL
@@ -79,11 +71,12 @@ getJBLKeys jbl
     getJBLKeys jbl (key : keys) exists iterator
 
 class FromJBL a where
-    deserialize :: JBL -> IO a
-    default deserialize :: (Generic a, GFromJBL (Rep a)) => JBL -> IO a
-    deserialize jbl = do
-        keys <- getJBLKeys jbl [] False Nothing
-        to <$> gdeserialize (DeserializationInfo jbl keys Nothing)
+    deserialize :: DeserializationInfo -> IO a
+    default deserialize
+        :: (Generic a, GFromJBL (Rep a)) => DeserializationInfo -> IO a
+    deserialize info = do
+        keys <- getJBLKeys (jbl info) [] False Nothing
+        to <$> gdeserialize (DeserializationInfo (jbl info) keys Nothing)
 
 class GFromJBL f where
     gdeserialize :: DeserializationInfo -> IO (f a)
@@ -98,7 +91,9 @@ instance (GFromJBL f) => GFromJBL (C1 c f) where
     gdeserialize info = M1 <$> gdeserialize info
 
 instance (GFromJBL f, Selector c) => GFromJBL (S1 c f) where
-    gdeserialize info = M1 <$> gdeserialize info
+    gdeserialize info = do
+        let key = selName (undefined :: S1 c f p)
+        M1 <$> gdeserialize info { key = Just key }
 
 instance (GFromJBL a, GFromJBL b) => GFromJBL (a :*: b) where
     gdeserialize info = do
@@ -107,44 +102,53 @@ instance (GFromJBL a, GFromJBL b) => GFromJBL (a :*: b) where
         return (a :*: b)
 
 instance (FromJBL c, Typeable c) => GFromJBL (Rec0 c) where
-    gdeserialize info = K1 <$> gdeserialize info
+    gdeserialize info = K1 <$> deserialize info
 
 instance FromJBL c => FromJBL (Maybe c) where
-    deserialize Nothing = setJBLPropertyNull
-    deserialize (Just a) = deserialize a
+    deserialize info = undefined
+
+getJBLPropertyValue
+    :: (Storable a, FromJBL b)
+    => JBL
+    -> Maybe String
+    -> b -- default value
+    -> (a -> b)
+    -> (JBL -> CString -> Ptr a -> IO RC)
+    -> IO b
+getJBLPropertyValue _ Nothing defaultValue _ _ = return defaultValue
+getJBLPropertyValue jbl (Just key) _ parser reader = do
+    parser <$> alloca (\valuePtr ->
+                       withCString key
+                                   (\cKey -> reader jbl cKey valuePtr
+                                    >>= checkRC >> peek valuePtr))
 
 instance FromJBL Int where
-    deserialize = setJBLIntegral
+    deserialize (DeserializationInfo jbl _ key) =
+        getJBLPropertyValue jbl key 0 fromIntegral c_jbl_object_get_i64
 
 instance FromJBL Integer where
-    deserialize = setJBLIntegral
+    deserialize (DeserializationInfo jbl _ key) =
+        getJBLPropertyValue jbl key 0 fromIntegral c_jbl_object_get_i64
 
 instance FromJBL Double where
-    deserialize = setJBLDouble
+    deserialize (DeserializationInfo jbl _ key) =
+        getJBLPropertyValue jbl key 0 (\(CDouble v) -> v) c_jbl_object_get_f64
 
 instance FromJBL Float where
-    deserialize = setJBLDouble . float2Double
+    deserialize (DeserializationInfo jbl _ key) =
+        getJBLPropertyValue jbl
+                            key
+                            0
+                            (\(CDouble v) -> double2Float v)
+                            c_jbl_object_get_f64
 
 instance FromJBL Bool where
-    deserialize = setJBLBool
+    deserialize (DeserializationInfo jbl _ key) =
+        getJBLPropertyValue jbl key False toBool c_jbl_object_get_f64
 
 instance FromJBL String where
-    deserialize = setJBLString
+    deserialize info = undefined
 
 instance {-# OVERLAPPABLE #-}FromJBL c => FromJBL [c] where
-    deserialize array = do
-        jblPtr <- getJBLPtr
-        liftIO createJQLArray >>= \jblArrayPtr -> do
-            liftIO (peek jblArrayPtr) >>= setJBLNested
-            pushJBLPtr jblArrayPtr
-        mapM_ deserialize array
-        setJBLPtr jblPtr
+    deserialize info = undefined
 
-decode :: FromJBL a => JBL -> IO (Maybe a)
-decode jbl = undefined
-
-encode :: FromJBL a => a -> (JBL -> IO b) -> IO b
-encode obj f = undefined
-
-encodeToByteString :: Aeson.ToJSON a => a -> BS.ByteString
-encodeToByteString obj = BSL.toStrict $ Aeson.encode obj
