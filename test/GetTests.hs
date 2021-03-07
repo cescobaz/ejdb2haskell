@@ -67,32 +67,31 @@ getListTest databaseIO = testCase "getList" $ do
     plants <- getList database getListTestQuery
     plants
         @?= [ ( 2
-                  , Just nothingPlant { id          = Nothing
-                                      , name        = Just "gentiana brentae"
-                                      , isTree      = Just False
-                                      , year        = Just 2008
-                                      , description = Just "violet 🌺flower"
-                                      }
-                  )
+              , Just nothingPlant { id          = Nothing
+                                  , name        = Just "gentiana brentae"
+                                  , isTree      = Just False
+                                  , year        = Just 2008
+                                  , description = Just "violet 🌺flower"
+                                  }
+              )
             , ( 3
-                  , Just nothingPlant { id          = Nothing
-                                      , name        = Just "leontopodium"
-                                      , isTree      = Just False
-                                      , year        = Just 1817
-                                      , description =
-                                            Just "tipical alpine flower"
-                                      }
-                  )
+              , Just nothingPlant { id          = Nothing
+                                  , name        = Just "leontopodium"
+                                  , isTree      = Just False
+                                  , year        = Just 1817
+                                  , description = Just "tipical alpine flower"
+                                  }
+              )
             , ( 4
-                  , Just nothingPlant { id          = Nothing
-                                      , name        =
-                                            Just "leucanthemum vulgare"
-                                      , isTree      = Just False
-                                      , year        = Just 1778
-                                      , description = Just "very common flower in Italy 🍕"
-                                      , ratio       = Just 1.618
-                                      }
-                  )
+              , Just nothingPlant { id          = Nothing
+                                  , name        = Just "leucanthemum vulgare"
+                                  , isTree      = Just False
+                                  , year        = Just 1778
+                                  , description =
+                                        Just "very common flower in Italy 🍕"
+                                  , ratio       = Just 1.618
+                                  }
+              )
             ]
 
 getListTest' :: IO Database -> TestTree
@@ -126,7 +125,7 @@ getByIdFromNotExistingCollectionTest databaseIO =
     testCase "getByIdFromNotExistingCollection" $ do
         database <- databaseIO
         assertException (userError "ErrorNotExists") -- this happens only with readonlyOpenFlags
-                        (getById database "noexisting" 1 :: IO (Maybe Value))
+                        (getById database "noexisting" 1 :: IO (Maybe Int))
 
 -- on ejdb_exec there is no error if collection doesn't exists
 -- https://github.com/Softmotions/ejdb/blob/40fb43a30e410b4f1bce68f79f397ce44c272c78/src/ejdb2.c#L821
@@ -136,5 +135,5 @@ getListFromNotExistingCollectionTest databaseIO =
         database <- databaseIO
         let query = Query "@noexisting/[isTree=:tree] | asc /name" $
                 setBool False "tree"
-        list <- getList database query :: IO [(Int64, Maybe Value)]
+        list <- getList database query :: IO [(Int64, Maybe Int)]
         list @?= []

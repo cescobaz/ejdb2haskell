@@ -2,11 +2,11 @@
 
 module Plant where
 
-import           Data.Aeson   ( FromJBL, ToJBL )
+import           Database.EJDB2
 
 import           GHC.Generics
 
-import           Prelude      hiding ( id )
+import           Prelude        hiding ( id )
 
 data Plant = Plant { id          :: Maybe Int
                    , name        :: Maybe String
@@ -20,6 +20,9 @@ data Plant = Plant { id          :: Maybe Int
 instance FromJBL Plant
 
 instance ToJBL Plant
+
+instance EJDB2IDObject Plant where
+    setId oid o = o { id = Just (fromIntegral oid) }
 
 nothingPlant :: Plant
 nothingPlant = Plant Nothing Nothing Nothing Nothing Nothing Nothing

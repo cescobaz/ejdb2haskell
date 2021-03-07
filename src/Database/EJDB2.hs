@@ -3,7 +3,7 @@
 module Database.EJDB2
     ( init
     , Database
-    , EJDB2IDObject
+    , EJDB2IDObject(..)
     , KV.readonlyOpenFlags
     , KV.truncateOpenFlags
     , KV.noTrimOnCloseOpenFlags
@@ -47,6 +47,8 @@ module Database.EJDB2
     , setRegexAtIndex
     , setNull
     , setNullAtIndex
+    , JBL.FromJBL
+    , JBL.ToJBL
     ) where
 
 import           Control.Exception
@@ -54,7 +56,7 @@ import           Control.Monad
 
 import qualified Data.Aeson                             as Aeson
 import qualified Data.ByteString                        as BS
-import qualified Data.HashMap.Strict                    as Map
+import qualified Data.ByteString.Lazy                   as BSL
 import           Data.IORef
 import           Data.Int
 import           Data.Word
@@ -65,7 +67,7 @@ import           Database.EJDB2.Bindings.Types.EJDB
 import           Database.EJDB2.Bindings.Types.EJDBDoc  as EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec as EJDBExec
 import qualified Database.EJDB2.IndexMode               as IndexMode
-import           Database.EJDB2.JBL
+import qualified Database.EJDB2.JBL                     as JBL
 import qualified Database.EJDB2.KV                      as KV
 import           Database.EJDB2.Options                 as Options
 import           Database.EJDB2.Query
@@ -126,7 +128,7 @@ close (Database ejdbPtr _) = do
     if result == Ok then free ejdbPtr else fail $ show result
 
 -- | Retrieve document identified by given id from collection.
-getById :: FromJBL a
+getById :: JBL.FromJBL a
         => Database
         -> String -- ^ Collection name
         -> Int64 -- ^ Document identifier. Not zero
@@ -137,7 +139,7 @@ getById (Database _ ejdb) collection id = alloca $ \jblPtr ->
                      c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
                  let result = decodeRC rc
                  case result of
-                     Ok -> peek jblPtr >>= decode
+                     Ok -> peek jblPtr >>= JBL.decode
                      ErrorNotFound -> return Nothing
                      _ -> fail $ show result)
             (c_jbl_destroy jblPtr)
@@ -156,7 +158,7 @@ exec visitor (Database _ ejdb) query = withQuery query $ \jql -> do
     finally (with exec c_ejdb_exec >>= checkRC) (freeHaskellFunPtr cVisitor)
 
 -- | Iterate over query result building the result
-fold :: FromJBL b
+fold :: JBL.FromJBL b
      => Database
      -> (a
          -> (Int64, Maybe b)
@@ -167,11 +169,16 @@ fold :: FromJBL b
 fold database f i query = newIORef (f, i) >>= \ref ->
     exec (foldVisitor ref) database query >> snd <$> readIORef ref
 
-foldVisitor
-    :: FromJBL b => IORef ((a -> (Int64, Maybe b) -> a), a) -> EJDBExecVisitor
+foldVisitor :: JBL.FromJBL b
+            => IORef ( a
+                       -> (Int64, Maybe b)
+                       -> a
+                     , a
+                     )
+            -> EJDBExecVisitor
 foldVisitor ref _ docPtr _ = do
     doc <- peek docPtr
-    value <- decode (raw doc)
+    value <- JBL.decode (raw doc)
     let id = fromIntegral $ EJDBDoc.id doc
     modifyIORef' ref $ \(f, partial) -> (f, f partial (id, value))
     return 0
@@ -179,10 +186,10 @@ foldVisitor ref _ docPtr _ = do
 {-|
   Executes a given query and builds a query result as list of tuple with id and document.
 -}
-getList :: FromJBL a => Database -> Query q -> IO [(Int64, Maybe a)]
+getList :: JBL.FromJBL a => Database -> Query q -> IO [(Int64, Maybe a)]
 getList database query = reverse <$> fold database foldList [] query
 
-foldList :: FromJBL a
+foldList :: JBL.FromJBL a
          => [(Int64, Maybe a)]
          -> (Int64, Maybe a)
          -> [(Int64, Maybe a)]
@@ -191,10 +198,11 @@ foldList = flip (:)
 {-|
   Executes a given query and builds a query result as list of documents with id injected as attribute.
 -}
-getList' :: (FromJBL a, EJDB2IDObject a) => Database -> Query q -> IO [Maybe a]
+getList'
+    :: (JBL.FromJBL a, EJDB2IDObject a) => Database -> Query q -> IO [Maybe a]
 getList' database query = reverse <$> fold database foldList' [] query
 
-foldList' :: (FromJBL a, EJDB2IDObject a)
+foldList' :: (JBL.FromJBL a, EJDB2IDObject a)
           => [Maybe a]
           -> (Int64, Maybe a)
           -> [Maybe a]
@@ -203,13 +211,13 @@ foldList' list (id, value) = (setId id <$> value) : list
 {-|
   Save new document into collection under new generated identifier.
 -}
-putNew :: ToJBL a
+putNew :: JBL.ToJBL a
        => Database
        -> String -- ^ Collection name
        -> a -- ^ Document
        -> IO Int64 -- ^ New document identifier. Not zero
 
-putNew (Database _ ejdb) collection obj = encode obj $
+putNew (Database _ ejdb) collection obj = JBL.encode obj $
     \doc -> withCString collection $ \cCollection -> alloca $ \idPtr ->
     c_ejdb_put_new ejdb cCollection doc idPtr >>= checkRC >> peek idPtr
     >>= \(CIntMax int) -> return int
@@ -217,14 +225,14 @@ putNew (Database _ ejdb) collection obj = encode obj $
 {-|
   Save a given document under specified id.
 -}
-put :: ToJBL a
+put :: JBL.ToJBL a
     => Database
     -> String -- ^ Collection name
     -> a -- ^ Document
     -> Int64 -- ^ Document identifier. Not zero
     -> IO ()
 put (Database _ ejdb) collection obj id =
-    encode obj $ \doc -> withCString collection $ \cCollection ->
+    JBL.encode obj $ \doc -> withCString collection $ \cCollection ->
     c_ejdb_put ejdb cCollection doc (CIntMax id) >>= checkRC
 
 {-|
@@ -254,6 +262,9 @@ patch :: Aeson.ToJSON a
 patch (Database _ ejdb) collection obj id = withCString collection $
     \cCollection -> BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
     c_ejdb_patch ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
+
+encodeToByteString :: Aeson.ToJSON a => a -> BS.ByteString
+encodeToByteString obj = BSL.toStrict $ Aeson.encode obj
 
 {-|
    Remove document identified by given id from collection coll.
@@ -298,12 +309,12 @@ renameCollection (Database _ ejdb) collection newCollection =
 {-|
   Returns JSON document describing database structure. You can use the convenient data 'Database.EJDB2.Meta.Meta'
 -}
-getMeta :: FromJBL a
+getMeta :: JBL.FromJBL a
         => Database
         -> IO (Maybe a) -- ^ JSON object describing ejdb storage. See data 'Database.EJDB2.Meta.Meta'
 
 getMeta (Database _ ejdb) = alloca $ \jblPtr -> c_ejdb_get_meta ejdb jblPtr
-    >>= checkRC >> finally (peek jblPtr >>= decode) (c_jbl_destroy jblPtr)
+    >>= checkRC >> finally (peek jblPtr >>= JBL.decode) (c_jbl_destroy jblPtr)
 
 {-|
   Create index with specified parameters if it has not existed before.

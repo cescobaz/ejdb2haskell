@@ -78,10 +78,16 @@ putOnExistingIdTest databaseIO = testCase "putOnExistingIdTest" $ do
 mergeOrPutNewTest :: IO Database -> TestTree
 mergeOrPutNewTest databaseIO = testCase "mergeOrPutNewTest" $ do
     database <- databaseIO
-    mergeOrPut database "plants" plant 4242
+    mergeOrPut database "plants" jsonPut 4242
     storedPlant <- getById database "plants" 4242
     storedPlant @?= Just plant
   where
+    jsonPut = Aeson.Object $ Map.fromList [ ("name", "pinus")
+                                          , ("isTree", Aeson.Bool True)
+                                          , ("year", Aeson.Number 1753)
+                                          , ("description", "wow 🌲")
+                                          ]
+
     plant = nothingPlant { id          = Nothing
                          , name        = Just "pinus"
                          , isTree      = Just True
@@ -128,16 +134,13 @@ patchTest databaseIO = testCase "patchTest" $ do
                          }
 
     jsonPatch = Aeson.Array $
-        Vector.fromList [ Aeson.Object $ Map.fromList [ ("op", "remove")
-                                                      , ("path", "/year")
-                                                      ]
+        Vector.fromList [ Aeson.Object $
+                          Map.fromList [ ("op", "remove"), ("path", "/year") ]
                         , Aeson.Object $
-                              Map.fromList [ ("op", "replace")
-                                           , ("path", "/description")
-                                           , ( "value"
-                                                 , "a tipical christmas tree"
-                                                 )
-                                           ]
+                          Map.fromList [ ("op", "replace")
+                                       , ("path", "/description")
+                                       , ("value", "a tipical christmas tree")
+                                       ]
                         ]
 
     lastPlant =
