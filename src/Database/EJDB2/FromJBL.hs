@@ -9,7 +9,6 @@
 module Database.EJDB2.FromJBL ( FromJBL(..), DeserializationInfo(..) ) where
 
 import           Control.Exception
-import           Control.Monad
 
 import           Data.Maybe
 import           Data.Typeable
@@ -40,38 +39,6 @@ createJBLIterator jbl = do
     c_jbl_iterator_init jbl jblIteratorPtr >>= checkRC
     return (jblIteratorPtr, jblpPtr)
 
-getJBLKeys :: JBL
-           -> [String]
-           -> Bool
-           -> Maybe (JBLIteratorPtr, Ptr JBL, Ptr CString, Ptr CInt)
-           -> IO [String]
-getJBLKeys jbl keys _ Nothing = do
-    (jblIteratorPtr, holder) <- createJBLIterator jbl
-    cKeyPtr <- malloc
-    cKeyLengthPtr <- malloc
-    exists <- toBool
-        <$> c_jbl_iterator_next jblIteratorPtr jbl cKeyPtr cKeyLengthPtr
-    getJBLKeys jbl
-               keys
-               exists
-               (Just (jblIteratorPtr, holder, cKeyPtr, cKeyLengthPtr))
-getJBLKeys jbl
-           keys
-           False
-           (Just (jblIteratorPtr, holder, cKeyPtr, cKeyLengthPtr)) =
-    free jblIteratorPtr >> free holder >> free cKeyPtr >> free cKeyLengthPtr
-    >> return keys
-getJBLKeys jbl
-           keys
-           True
-           iterator@(Just (jblIteratorPtr, holder, cKeyPtr, cKeyLengthPtr)) = do
-    cKey <- peek cKeyPtr
-    cKeyLength <- peek cKeyLengthPtr
-    key <- peekCStringLen (cKey, fromIntegral cKeyLength)
-    exists <- toBool
-        <$> c_jbl_iterator_next jblIteratorPtr jbl cKeyPtr cKeyLengthPtr
-    getJBLKeys jbl (key : keys) exists iterator
-
 class FromJBL a where
     deserialize :: DeserializationInfo -> IO a
     default deserialize
@@ -93,7 +60,6 @@ instance (GFromJBL f) => GFromJBL (C1 c f) where
 instance (GFromJBL f, Selector c) => GFromJBL (S1 c f) where
     gdeserialize info = do
         let key = getKey $ selName (undefined :: S1 c f p)
-        --putStrLn ("SELECTOOOR" ++ show key)
         M1 <$> gdeserialize info { key = key }
       where
         getKey "" = Nothing
@@ -121,9 +87,15 @@ getJBLPropertyValue jbl (Just key) jblType reader parser =
     handle (\(_ :: IOException) -> return Nothing)
            (fmap parser
             <$> withCString key
-                            (\cKey -> ((jblType ==) . decodeJBLTypeT
-                                       <$> c_jbl_object_get_type jbl cKey)
+                            (\cKey -> checkJBLPropertyType jbl cKey jblType
                              >> getJBLPropertyValue' jbl cKey reader))
+
+checkJBLPropertyType :: JBL -> CString -> JBLType -> IO ()
+checkJBLPropertyType jbl cKey jblType = c_jbl_object_get_type jbl cKey
+    >>= (\ok -> if ok
+                then return ()
+                else fail ("incorrect type for key " ++ show cKey))
+    . (jblType ==) . decodeJBLTypeT
 
 getJBLPropertyValue' :: Storable a
                      => JBL
@@ -143,16 +115,15 @@ instance FromJBL String where
     deserialize info = fromMaybe "" <$> deserialize info
 
 instance FromJBL (Maybe String) where
-    deserialize (DeserializationInfo _ Nothing) = return (Just "")
+    deserialize (DeserializationInfo _ Nothing) = return Nothing
     deserialize (DeserializationInfo jbl (Just key)) =
-        alloca (\valuePtr ->
-                withCString key
-                            (\cKey -> c_jbl_object_get_type jbl cKey >>= guard
-                             . (JBVStr ==) . decodeJBLTypeT
-                             >> c_jbl_object_get_str jbl cKey valuePtr
-                             >>= checkRC >> peekOrNothing valuePtr
-                             >>= maybe (return Nothing)
-                                       (fmap Just . peekCString)))
+        withCString key
+                    (\cKey -> checkJBLPropertyType jbl cKey JBVStr
+                     >> alloca (\valuePtr ->
+                                c_jbl_object_get_str jbl cKey valuePtr
+                                >>= checkRC >> peekOrNothing valuePtr
+                                >>= maybe (return Nothing)
+                                          (fmap Just . peekCString)))
 
 instance FromJBL Int where
     deserialize info = fromMaybe 0 <$> deserialize info
@@ -202,7 +173,7 @@ instance FromJBL Bool where
 
 instance FromJBL (Maybe Bool) where
     deserialize (DeserializationInfo jbl key) =
-        getJBLPropertyValue jbl key JBVBool c_jbl_object_get_f64 toBool
+        getJBLPropertyValue jbl key JBVBool c_jbl_object_get_bool toBool
 
 instance {-# OVERLAPPABLE #-}FromJBL c => FromJBL [c] where
     deserialize info = fromMaybe [] <$> deserialize info
