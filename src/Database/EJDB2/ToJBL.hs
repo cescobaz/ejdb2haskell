@@ -5,7 +5,13 @@
 
 {-# LANGUAGE TypeOperators #-}
 
-module Database.EJDB2.ToJBL ( ToJBL(..) ) where
+module Database.EJDB2.ToJBL
+    ( ToJBL(..)
+    , SerializationM
+    , SerializationState(..)
+    , execSerialize
+    , initState
+    ) where
 
 import           Control.Monad.State.Lazy
 
@@ -28,10 +34,18 @@ data SerializationState =
                        , key           :: Maybe String
                        }
 
+initState :: Ptr JBL -> SerializationState
+initState jblPtr = SerializationState { currentJBLPtr = jblPtr
+                                      , jblPtrs       = []
+                                      , cStrings      = []
+                                      , key           = Nothing
+                                      }
+
 type SerializationM a = StateT SerializationState IO a
 
-iserialize :: SerializationM a -> SerializationState -> IO SerializationState
-iserialize = execStateT
+execSerialize
+    :: SerializationM a -> SerializationState -> IO SerializationState
+execSerialize = execStateT
 
 getJBLPtr :: SerializationM (Ptr JBL)
 getJBLPtr = currentJBLPtr <$> get
@@ -100,11 +114,17 @@ class ToJBL a where
     default serialize :: (Generic a, GToJBL (Rep a)) => a -> SerializationM ()
     serialize a = do
         jblPtr <- getJBLPtr
-        liftIO createJBLObject >>= \jblObjectPtr -> do
-            liftIO (peek jblObjectPtr) >>= setJBLNested
-            pushJBLPtr jblObjectPtr
-        gserialize (from a)
-        setJBLPtr jblPtr
+        if jblPtr == nullPtr
+            then (do
+                      liftIO createJBLObject
+                          >>= \jblObjectPtr -> pushJBLPtr jblObjectPtr
+                      gserialize (from a))
+            else (do
+                      liftIO createJBLObject
+                          >>= (\childJblPtr -> liftIO (peek childJblPtr)
+                               >>= setJBLNested >> pushJBLPtr childJblPtr)
+                      gserialize (from a)
+                      setJBLPtr jblPtr)
 
 class GToJBL f where
     gserialize :: f a -> SerializationM ()
