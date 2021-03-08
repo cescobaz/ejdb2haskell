@@ -55,32 +55,30 @@ getJBL = get >>= liftIO . peek . currentJBLPtr
 
 pushJBLPtr :: Ptr JBL -> SerializationM ()
 pushJBLPtr jblPtr =
-    modify (\state ->
-            state { currentJBLPtr = jblPtr, jblPtrs = jblPtr : jblPtrs state })
+    modify (\s -> s { currentJBLPtr = jblPtr, jblPtrs = jblPtr : jblPtrs s })
 
 setJBLPtr :: Ptr JBL -> SerializationM ()
-setJBLPtr jblPtr = modify (\state -> state { currentJBLPtr = jblPtr })
+setJBLPtr jblPtr = modify (\s -> s { currentJBLPtr = jblPtr })
 
 pushCString :: String -> SerializationM CString
 pushCString string = liftIO (newCString string) >>= \cString ->
-    modify (\state -> state { cStrings = cString : cStrings state })
-    >> return cString
+    modify (\s -> s { cStrings = cString : cStrings s }) >> return cString
 
 getKey :: SerializationM (Maybe String)
 getKey = key <$> get
 
 setKey :: Maybe String -> SerializationM ()
 setKey (Just "") = setKey Nothing
-setKey key = modify (\state -> state { key = key })
+setKey k = modify (\s -> s { key = k })
 
 setJBLProperty :: (JBL -> CString -> a -> IO RC) -> a -> SerializationM ()
 setJBLProperty f value = getKey
     >>= maybe (return ())
-              (\key -> getJBL >>= \jbl -> liftIO $
-               withCString key (\cKey -> f jbl cKey value) >>= checkRC)
+              (\k -> getJBL >>= \jbl -> liftIO $
+               withCString k (\cKey -> f jbl cKey value) >>= checkRC)
 
 setJBLPropertyNull :: SerializationM ()
-setJBLPropertyNull = setJBLProperty (\jbl key _ -> c_jbl_set_null jbl key) ()
+setJBLPropertyNull = setJBLProperty (\jbl k _ -> c_jbl_set_null jbl k) ()
 
 setJBLNested :: JBL -> SerializationM ()
 setJBLNested = setJBLProperty c_jbl_set_nested
@@ -125,8 +123,6 @@ instance GToJBL U1 where
 
 instance (GToJBL f, Datatype c) => GToJBL (D1 c f) where
     gserialize d1 = gserialize (unM1 d1)
-      where
-        t = datatypeName d1
 
 instance (GToJBL f) => GToJBL (C1 c f) where
     gserialize (M1 x) = gserialize x
@@ -134,11 +130,9 @@ instance (GToJBL f) => GToJBL (C1 c f) where
 instance (GToJBL f, Selector c) => GToJBL (S1 c f) where
     gserialize s1 = do
         currentKey <- getKey
-        setKey (Just key)
+        setKey (Just (selName s1))
         gserialize (unM1 s1)
         setKey currentKey
-      where
-        key = selName s1
 
 instance (GToJBL a, GToJBL b) => GToJBL (a :*: b) where
     gserialize (a :*: b) = gserialize a >> gserialize b

@@ -133,10 +133,10 @@ getById :: JBL.FromJBL a
         -> String -- ^ Collection name
         -> Int64 -- ^ Document identifier. Not zero
         -> IO (Maybe a)
-getById (Database _ ejdb) collection id = alloca $ \jblPtr ->
+getById (Database _ ejdb) collection did = alloca $ \jblPtr ->
     finally (do
                  rc <- withCString collection $ \cCollection ->
-                     c_ejdb_get ejdb cCollection (CIntMax id) jblPtr
+                     c_ejdb_get ejdb cCollection (CIntMax did) jblPtr
                  let result = decodeRC rc
                  case result of
                      Ok -> peek jblPtr >>= JBL.decode
@@ -151,11 +151,10 @@ getCount (Database _ ejdb) query = withQuery query $ \jql -> alloca $
     >>= \(CIntMax int) -> return int
 
 exec :: EJDBExecVisitor -> Database -> Query q -> IO ()
-exec visitor (Database _ ejdb) query = withQuery query $ \jql -> do
-    cVisitor <- mkEJDBExecVisitor visitor
-    let exec =
-            EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = cVisitor }
-    finally (with exec c_ejdb_exec >>= checkRC) (freeHaskellFunPtr cVisitor)
+exec v (Database _ ejdb) query = withQuery query $ \jql -> do
+    cVisitor <- mkEJDBExecVisitor v
+    let e = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = cVisitor }
+    finally (with e c_ejdb_exec >>= checkRC) (freeHaskellFunPtr cVisitor)
 
 -- | Iterate over query result building the result
 fold :: JBL.FromJBL b
@@ -179,8 +178,8 @@ foldVisitor :: JBL.FromJBL b
 foldVisitor ref _ docPtr _ = do
     doc <- peek docPtr
     value <- JBL.decode (raw doc)
-    let id = fromIntegral $ EJDBDoc.id doc
-    modifyIORef' ref $ \(f, partial) -> (f, f partial (id, value))
+    let did = fromIntegral $ EJDBDoc.id doc
+    modifyIORef' ref $ \(f, partial) -> (f, f partial (did, value))
     return 0
 
 {-|
@@ -206,7 +205,7 @@ foldList' :: (JBL.FromJBL a, EJDB2IDObject a)
           => [Maybe a]
           -> (Int64, Maybe a)
           -> [Maybe a]
-foldList' list (id, value) = (setId id <$> value) : list
+foldList' list (did, value) = (setId did <$> value) : list
 
 {-|
   Save new document into collection under new generated identifier.
@@ -218,8 +217,8 @@ putNew :: JBL.ToJBL a
        -> IO Int64 -- ^ New document identifier. Not zero
 
 putNew (Database _ ejdb) collection obj = JBL.encode obj $
-    \doc -> withCString collection $ \cCollection -> alloca $ \idPtr ->
-    c_ejdb_put_new ejdb cCollection doc idPtr >>= checkRC >> peek idPtr
+    \doc -> withCString collection $ \cCollection -> alloca $ \didPtr ->
+    c_ejdb_put_new ejdb cCollection doc didPtr >>= checkRC >> peek didPtr
     >>= \(CIntMax int) -> return int
 
 {-|
@@ -231,9 +230,9 @@ put :: JBL.ToJBL a
     -> a -- ^ Document
     -> Int64 -- ^ Document identifier. Not zero
     -> IO ()
-put (Database _ ejdb) collection obj id =
+put (Database _ ejdb) collection obj did =
     JBL.encode obj $ \doc -> withCString collection $ \cCollection ->
-    c_ejdb_put ejdb cCollection doc (CIntMax id) >>= checkRC
+    c_ejdb_put ejdb cCollection doc (CIntMax did) >>= checkRC
 
 {-|
   Apply JSON merge patch (rfc7396) to the document identified by id or insert new document under specified id.
@@ -246,9 +245,9 @@ mergeOrPut :: Aeson.ToJSON a
            -> a -- ^ JSON merge patch conformed to rfc7396 specification
            -> Int64 -- ^ Document identifier. Not zero
            -> IO ()
-mergeOrPut (Database _ ejdb) collection obj id = withCString collection $
+mergeOrPut (Database _ ejdb) collection obj did = withCString collection $
     \cCollection -> BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
-    c_ejdb_merge_or_put ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
+    c_ejdb_merge_or_put ejdb cCollection jsonPatch (CIntMax did) >>= checkRC
 
 {-|
   Apply rfc6902\/rfc7396 JSON patch to the document identified by id.
@@ -259,9 +258,9 @@ patch :: Aeson.ToJSON a
       -> a -- ^ JSON patch conformed to rfc6902 or rfc7396 specification
       -> Int64 -- ^ Document identifier. Not zero
       -> IO ()
-patch (Database _ ejdb) collection obj id = withCString collection $
+patch (Database _ ejdb) collection obj did = withCString collection $
     \cCollection -> BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
-    c_ejdb_patch ejdb cCollection jsonPatch (CIntMax id) >>= checkRC
+    c_ejdb_patch ejdb cCollection jsonPatch (CIntMax did) >>= checkRC
 
 encodeToByteString :: Aeson.ToJSON a => a -> BS.ByteString
 encodeToByteString obj = BSL.toStrict $ Aeson.encode obj
@@ -273,8 +272,8 @@ delete :: Database
        -> String -- ^ Collection name
        -> Int64 -- ^ Document identifier. Not zero
        -> IO ()
-delete (Database _ ejdb) collection id = withCString collection $
-    \cCollection -> c_ejdb_del ejdb cCollection (CIntMax id) >>= checkRC
+delete (Database _ ejdb) collection did = withCString collection $
+    \cCollection -> c_ejdb_del ejdb cCollection (CIntMax did) >>= checkRC
 
 {-|
   Create collection with given name if it has not existed before
