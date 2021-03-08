@@ -97,18 +97,6 @@ setJBLIntegral = setJBLProperty c_jbl_set_int64 . fromIntegral
 setJBLString :: String -> SerializationM ()
 setJBLString string = pushCString string >>= setJBLProperty c_jbl_set_string
 
-createJBLObject :: IO (Ptr JBL)
-createJBLObject = do
-    jblPtr <- malloc
-    c_jbl_create_empty_object jblPtr >>= checkRC
-    return jblPtr
-
-createJBLArray :: IO (Ptr JBL)
-createJBLArray = do
-    jblPtr <- malloc
-    c_jbl_create_empty_array jblPtr >>= checkRC
-    return jblPtr
-
 class ToJBL a where
     serialize :: a -> SerializationM ()
     default serialize :: (Generic a, GToJBL (Rep a)) => a -> SerializationM ()
@@ -136,17 +124,15 @@ instance GToJBL U1 where
     gserialize _ = return ()
 
 instance (GToJBL f, Datatype c) => GToJBL (D1 c f) where
-    gserialize d1 = liftIO (putStrLn ("D1 " ++ t ++ " "))
-        >> gserialize (unM1 d1)
+    gserialize d1 = gserialize (unM1 d1)
       where
         t = datatypeName d1
 
 instance (GToJBL f) => GToJBL (C1 c f) where
-    gserialize (M1 x) = liftIO (putStrLn "C1") >> gserialize x
+    gserialize (M1 x) = gserialize x
 
 instance (GToJBL f, Selector c) => GToJBL (S1 c f) where
     gserialize s1 = do
-        liftIO (putStr "S1 " >> putStrLn key)
         currentKey <- getKey
         setKey (Just key)
         gserialize (unM1 s1)
@@ -155,12 +141,10 @@ instance (GToJBL f, Selector c) => GToJBL (S1 c f) where
         key = selName s1
 
 instance (GToJBL a, GToJBL b) => GToJBL (a :*: b) where
-    gserialize (a :*: b) = liftIO (putStrLn "prodotto") >> gserialize a
-        >> gserialize b
+    gserialize (a :*: b) = gserialize a >> gserialize b
 
 instance (ToJBL c, Typeable c) => GToJBL (Rec0 c) where
-    gserialize (K1 x) = liftIO (putStrLn (" K1 " ++ show (typeOf x)))
-        >> serialize x
+    gserialize (K1 x) = serialize x
 
 instance ToJBL c => ToJBL (Maybe c) where
     serialize Nothing = setJBLPropertyNull

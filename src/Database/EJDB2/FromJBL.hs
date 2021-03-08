@@ -31,14 +31,6 @@ headOrNothing :: [a] -> Maybe a
 headOrNothing [] = Nothing
 headOrNothing (h : _) = Just h
 
-createJBLIterator :: JBL -> IO (JBLIteratorPtr, Ptr JBL)
-createJBLIterator jbl = do
-    jblpPtr <- malloc
-    jblIteratorPtr <- mallocJBLIterator
-    c_jbl_create_iterator_holder jblpPtr >>= checkRC
-    c_jbl_iterator_init jbl jblIteratorPtr >>= checkRC
-    return (jblIteratorPtr, jblpPtr)
-
 class FromJBL a where
     deserialize :: DeserializationInfo -> IO a
     default deserialize
@@ -179,5 +171,29 @@ instance {-# OVERLAPPABLE #-}FromJBL c => FromJBL [c] where
     deserialize info = fromMaybe [] <$> deserialize info
 
 instance {-# OVERLAPPABLE #-}FromJBL c => FromJBL (Maybe [c]) where
-    deserialize info = undefined
+    deserialize (DeserializationInfo jbl (Just key)) =
+        withCString key
+                    (\cKey -> do
+                         checkJBLPropertyType jbl cKey JBVArray
+                         jblPtr <- createJBLArray
+                         jblOut <- peek jblPtr
+                         c_jbl_object_get_fill_jbl jbl cKey jblOut >>= checkRC
+                         Just <$> deserializeArray jblOut)
 
+deserializeArray :: FromJBL a => JBL -> IO [a]
+deserializeArray jbl = do
+    (jblIteratorPtr, holder) <- createJBLIterator jbl
+    finally (deserializeArray' jblIteratorPtr holder)
+            (freeJBLIterator (jblIteratorPtr, holder))
+
+deserializeArray' :: FromJBL a => JBLIteratorPtr -> Ptr JBL -> IO [a]
+deserializeArray' jblIteratorPtr jblPtr = do
+    jbl <- peek jblPtr
+    stop <- not . toBool
+        <$> c_jbl_iterator_next jblIteratorPtr jbl nullPtr nullPtr
+    putStrLn ("weee " ++ show stop)
+    if stop
+        then return []
+        else (do
+                  element <- deserialize (DeserializationInfo jbl Nothing)
+                  (element :) <$> deserializeArray' jblIteratorPtr jblPtr)

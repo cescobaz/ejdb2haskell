@@ -1,10 +1,3 @@
-{-# LANGUAGE DefaultSignatures #-}
-
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
-
-{-# LANGUAGE TypeOperators #-}
-
 module Database.EJDB2.JBL ( ToJBL, encode, FromJBL, decode ) where
 
 import           Control.Monad.IO.Class
@@ -13,7 +6,6 @@ import           Database.EJDB2.Bindings.JBL
 import           Database.EJDB2.FromJBL
 import           Database.EJDB2.ToJBL
 
-import           Foreign.Marshal.Alloc
 import           Foreign.Ptr
 import           Foreign.Storable
 
