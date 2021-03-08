@@ -176,9 +176,12 @@ instance {-# OVERLAPPABLE #-}FromJBL c => FromJBL (Maybe [c]) where
                     (\cKey -> do
                          checkJBLPropertyType jbl cKey JBVArray
                          jblPtr <- createJBLArray
-                         jblOut <- peek jblPtr
-                         c_jbl_object_get_fill_jbl jbl cKey jblOut >>= checkRC
-                         Just <$> deserializeArray jblOut)
+                         finally (do
+                                      jblOut <- peek jblPtr
+                                      c_jbl_object_get_fill_jbl jbl cKey jblOut
+                                          >>= checkRC
+                                      Just <$> deserializeArray jblOut)
+                                 (freeJBLObject jblPtr))
 
 deserializeArray :: FromJBL a => JBL -> IO [a]
 deserializeArray jbl = do
