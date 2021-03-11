@@ -23,7 +23,7 @@ data JBLType = JBVNone     -- Do not reorder
              | JBVStr
              | JBVObject   -- Do not reorder
              | JBVArray
-             deriving (Eq)
+             deriving (Eq, Show)
 
 decodeJBLTypeT :: JBLTypeT -> JBLType
 decodeJBLTypeT jblTypeT = case jblTypeT of

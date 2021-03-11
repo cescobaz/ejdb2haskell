@@ -34,6 +34,10 @@ class FromJBL a where
         :: (Generic a, GFromJBL (Rep a)) => DeserializationInfo -> IO a
     deserialize info = to <$> gdeserialize info
 
+instance {-# OVERLAPPABLE #-}FromJBL a => FromJBL (Maybe a) where
+    deserialize info = handle (\(_ :: IOException) -> return Nothing)
+                              (Just <$> deserialize info)
+
 class GFromJBL f where
     gdeserialize :: DeserializationInfo -> IO (f a)
 
@@ -76,15 +80,25 @@ getJBLPropertyValue jbl (Just key) jblType reader parser =
     handle (\(_ :: IOException) -> return Nothing)
            (fmap parser
             <$> withCString key
-                            (\cKey -> checkJBLPropertyType jbl cKey jblType
-                             >> getJBLPropertyValue' jbl cKey reader))
+                            (\cKey ->
+                             checkJBLPropertyType jbl
+                                                  cKey
+                                                  jblType
+                                                  (getJBLPropertyValue' jbl
+                                                                        cKey
+                                                                        reader)))
 
-checkJBLPropertyType :: JBL -> CString -> JBLType -> IO ()
-checkJBLPropertyType jbl cKey jblType = c_jbl_object_get_type jbl cKey
-    >>= (\ok -> if ok
-                then return ()
-                else fail ("incorrect type for key " ++ show cKey))
-    . (jblType ==) . decodeJBLTypeT
+checkJBLPropertyType
+    :: JBL -> CString -> JBLType -> IO (Maybe a) -> IO (Maybe a)
+checkJBLPropertyType jbl cKey jblType computation =
+    c_jbl_object_get_type jbl cKey
+    >>= (\t -> if t == jblType
+               then computation
+               else if t == JBVNull || t == JBVNone
+                    then return Nothing
+                    else peekCString cKey >>= \k ->
+                        fail ("incorrect type (" ++ show t ++ "for key " ++ k))
+    . decodeJBLTypeT
 
 getJBLPropertyValue' :: Storable a
                      => JBL
@@ -121,18 +135,18 @@ instance FromJBL String where
     deserialize info = fromMaybe "" <$> deserialize info
 
 instance FromJBL (Maybe String) where
-    deserialize (DeserializationInfo jbl Nothing) = putStrLn "weee  "
-        >> checkJBLValueType jbl
-                             JBVStr
-                             (c_jbl_get_str jbl >>= (fmap Just . peekCString))
+    deserialize (DeserializationInfo jbl Nothing) =
+        checkJBLValueType jbl
+                          JBVStr
+                          (c_jbl_get_str jbl >>= (fmap Just . peekCString))
     deserialize (DeserializationInfo jbl (Just key)) =
         withCString key
-                    (\cKey -> checkJBLPropertyType jbl cKey JBVStr
-                     >> alloca (\valuePtr ->
-                                c_jbl_object_get_str jbl cKey valuePtr
-                                >>= checkRC >> peekOrNothing valuePtr
-                                >>= maybe (return Nothing)
-                                          (fmap Just . peekCString)))
+                    (\cKey -> checkJBLPropertyType jbl cKey JBVStr $
+                     alloca (\valuePtr ->
+                             c_jbl_object_get_str jbl cKey valuePtr >>= checkRC
+                             >> peekOrNothing valuePtr
+                             >>= maybe (return Nothing)
+                                       (fmap Just . peekCString)))
 
 convertJBLValue :: (Num a, Eq a) => Maybe a -> Maybe a
 convertJBLValue (Just 0) = Nothing
@@ -212,8 +226,8 @@ instance {-# OVERLAPPABLE #-}FromJBL c => FromJBL (Maybe [c]) where
     deserialize (DeserializationInfo jbl (Just key)) =
         handle (\(_ :: IOException) -> return Nothing)
                (withCString key
-                            (\cKey -> do
-                                 checkJBLPropertyType jbl cKey JBVArray
+                            (\cKey ->
+                             checkJBLPropertyType jbl cKey JBVArray $ do
                                  jblPtr <- createJBLArray
                                  finally (do
                                               jblOut <- peek jblPtr

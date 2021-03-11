@@ -63,7 +63,7 @@ setJBLPtr :: Ptr JBL -> SerializationM ()
 setJBLPtr jblPtr = modify (\s -> s { currentJBLPtr = jblPtr })
 
 pushCString :: String -> SerializationM CString
-pushCString string = liftIO (putStrLn ("pushCString" ++ string)
+pushCString string = liftIO (putStrLn ("pushCString " ++ string)
                              >> newCString string) >>= \cString ->
     modify (\s -> s { cStrings = cString : cStrings s }) >> return cString
 
@@ -151,6 +151,9 @@ instance ToJBL c => ToJBL (Maybe c) where
     serialize (Just a) = serialize a
 
 instance ToJBL Int where
+    serialize = setJBLIntegral
+
+instance ToJBL Int64 where
     serialize = setJBLIntegral
 
 instance ToJBL Integer where
