@@ -95,6 +95,19 @@ foreign import ccall "ejdb2/jbl.h jbl_iterator_init" c_jbl_iterator_init
 foreign import ccall "ejdb2/jbl.h jbl_iterator_next" c_jbl_iterator_next
         :: JBLIteratorPtr -> JBL -> Ptr CString -> Ptr CInt -> IO CBool
 
+foreign import ccall "ejdb2/jbl.h jbl_type" c_jbl_type :: JBL -> IO JBLTypeT
+
+foreign import ccall "ejdb2/jbl.h jbl_get_i64" c_jbl_get_i64
+        :: JBL -> IO CIntMax
+
+foreign import ccall "ejdb2/jbl.h jbl_get_i32" c_jbl_get_i32 :: JBL -> IO CInt
+
+foreign import ccall "ejdb2/jbl.h jbl_get_f64" c_jbl_get_f64
+        :: JBL -> IO CDouble
+
+foreign import ccall "ejdb2/jbl.h jbl_get_str" c_jbl_get_str
+        :: JBL -> IO CString
+
 foreign import ccall "ejdb2/jbl.h jbl_object_get_type" c_jbl_object_get_type
         :: JBL -> CString -> IO JBLTypeT
 

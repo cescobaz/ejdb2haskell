@@ -2,6 +2,8 @@
 
 module Plant where
 
+import           Data.HashSet   as HashSet
+
 import           Database.EJDB2
 
 import           GHC.Generics
@@ -14,6 +16,8 @@ data Plant = Plant { id          :: Maybe Int
                    , year        :: Maybe Int
                    , description :: Maybe String
                    , ratio       :: Maybe Double
+                   , insects     :: Maybe [String]
+                   , locations   :: Maybe (HashSet String)
                    }
     deriving ( Eq, Generic, Show )
 
@@ -25,4 +29,5 @@ instance EJDB2IDObject Plant where
     setId oid o = o { id = Just (fromIntegral oid) }
 
 nothingPlant :: Plant
-nothingPlant = Plant Nothing Nothing Nothing Nothing Nothing Nothing
+nothingPlant =
+    Plant Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
