@@ -187,6 +187,7 @@ getListWithStringAtIndexQueryTest databaseIO =
                                          , isTree      = Just True
                                          , year        = Just 1753
                                          , description = Just "wow 🌲"
+                                         , insects     = Just [ "ant" ]
                                          }
                      )
                    ]
@@ -241,6 +242,7 @@ getListWithNullQueryTest databaseIO = testCase "getListWithNullQuery" $ do
                                      , year        = Just 1753
                                      , description = Just "wow 🌲"
                                      , ratio       = Nothing
+                                     , insects     = Just [ "ant" ]
                                      }
                  )
                ]
@@ -258,6 +260,7 @@ getListWithNullAtIndexQueryTest databaseIO =
                                          , year        = Just 1753
                                          , description = Just "wow 🌲"
                                          , ratio       = Nothing
+                                         , insects     = Just [ "ant" ]
                                          }
                      )
                    ]
@@ -276,6 +279,7 @@ getListWithMixedQueryTest databaseIO = testCase "getListWithMixedQuery" $ do
                                      , isTree      = Just True
                                      , year        = Just 1753
                                      , description = Just "wow 🌲"
+                                     , insects     = Just [ "ant" ]
                                      }
                  )
                ]
@@ -294,6 +298,7 @@ getListWithTwoStringsQueryTest databaseIO =
                                          , isTree      = Just True
                                          , year        = Just 1753
                                          , description = Just "wow 🌲"
+                                         , insects     = Just [ "ant" ]
                                          }
                      )
                    ]

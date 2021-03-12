@@ -13,7 +13,6 @@ module Database.EJDB2.ToJBL
     , initState
     ) where
 
-import           Control.Monad
 import           Control.Monad.State.Lazy
 
 import qualified Data.HashSet                as HashSet
@@ -63,8 +62,7 @@ setJBLPtr :: Ptr JBL -> SerializationM ()
 setJBLPtr jblPtr = modify (\s -> s { currentJBLPtr = jblPtr })
 
 pushCString :: String -> SerializationM CString
-pushCString string = liftIO (putStrLn ("pushCString " ++ string)
-                             >> newCString string) >>= \cString ->
+pushCString string = liftIO (newCString string) >>= \cString ->
     modify (\s -> s { cStrings = cString : cStrings s }) >> return cString
 
 getKey :: SerializationM (Maybe String)
@@ -76,11 +74,9 @@ setKey k = modify (\s -> s { key = k })
 
 setJBLProperty :: (JBL -> CString -> a -> IO RC) -> a -> SerializationM ()
 setJBLProperty f value = getJBL >>= \jbl -> getKey
-    >>= maybe (liftIO (putStrLn "setJBLProperty null key "
-                       >> f jbl nullPtr value >>= checkRC))
+    >>= maybe (liftIO (f jbl nullPtr value >>= checkRC))
               (\k -> pushCString k
-               >>= (\cKey -> liftIO (putStrLn ("setJBLProperty " ++ k)
-                                     >> f jbl cKey value >>= checkRC)))
+               >>= (\cKey -> liftIO (f jbl cKey value >>= checkRC)))
 
 setJBLPropertyNull :: SerializationM ()
 setJBLPropertyNull = setJBLProperty (\jbl k _ -> c_jbl_set_null jbl k) ()
@@ -98,8 +94,7 @@ setJBLIntegral :: (Integral a) => a -> SerializationM ()
 setJBLIntegral = setJBLProperty c_jbl_set_int64 . fromIntegral
 
 setJBLString :: String -> SerializationM ()
-setJBLString string = liftIO (putStrLn $ "setJBLString " ++ string)
-    >> pushCString string >>= setJBLProperty c_jbl_set_string
+setJBLString string = pushCString string >>= setJBLProperty c_jbl_set_string
 
 class ToJBL a where
     serialize :: a -> SerializationM ()
@@ -173,21 +168,15 @@ instance ToJBL String where
 
 instance {-# OVERLAPPABLE #-}ToJBL c => ToJBL [c] where
     serialize array = do
-        liftIO $ putStrLn "1"
         jblPtr <- getJBLPtr
-        liftIO $ putStrLn "2"
-        liftIO createJBLArray >>= \jblArrayPtr -> do
-            liftIO (peek jblArrayPtr) >>= setJBLNested
-            pushJBLPtr jblArrayPtr
-        liftIO $ putStrLn "4"
         currentKey <- getKey
+        jblArrayPtr <- liftIO createJBLArray
+        pushJBLPtr jblArrayPtr
         setKey Nothing
-        mapM_ (\a -> liftIO (putStrLn " element BEFORE ") >> serialize a
-               >> liftIO (putStrLn " element AFTER "))
-              array
-        liftIO $ putStrLn "5"
+        mapM_ serialize array
         setKey currentKey
         setJBLPtr jblPtr
+        liftIO (peek jblArrayPtr) >>= setJBLNested
 
 instance ToJBL c => ToJBL (HashSet.HashSet c) where
     serialize = serialize . HashSet.toList
