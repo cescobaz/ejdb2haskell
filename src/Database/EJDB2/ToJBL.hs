@@ -102,10 +102,7 @@ class ToJBL a where
     serialize a = do
         jblPtr <- getJBLPtr
         if jblPtr == nullPtr
-            then (do
-                      liftIO createJBLObject
-                          >>= \jblObjectPtr -> pushJBLPtr jblObjectPtr
-                      gserialize (from a))
+            then liftIO createJBLObject >>= pushJBLPtr >> gserialize (from a)
             else (do
                       currentKey <- getKey
                       childJblPtr <- liftIO createJBLObject
