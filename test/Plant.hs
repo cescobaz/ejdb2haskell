@@ -10,6 +10,13 @@ import           GHC.Generics
 
 import           Prelude        hiding ( id )
 
+data Leaf = Leaf { color :: String, size :: Int }
+    deriving ( Eq, Generic, Show )
+
+instance FromJBL Leaf
+
+instance ToJBL Leaf
+
 data Plant = Plant { id          :: Maybe Int
                    , name        :: Maybe String
                    , isTree      :: Maybe Bool
@@ -17,7 +24,8 @@ data Plant = Plant { id          :: Maybe Int
                    , description :: Maybe String
                    , ratio       :: Maybe Double
                    , insects     :: Maybe [String]
-                   , locations   :: Maybe (HashSet String)
+                   , leafs       :: Maybe (HashSet Int)
+                   , leaf        :: Maybe Leaf
                    }
     deriving ( Eq, Generic, Show )
 
@@ -29,5 +37,12 @@ instance EJDB2IDObject Plant where
     setId oid o = o { id = Just (fromIntegral oid) }
 
 nothingPlant :: Plant
-nothingPlant =
-    Plant Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+nothingPlant = Plant Nothing
+                     Nothing
+                     Nothing
+                     Nothing
+                     Nothing
+                     Nothing
+                     Nothing
+                     Nothing
+                     Nothing

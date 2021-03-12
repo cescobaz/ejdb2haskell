@@ -35,8 +35,22 @@ class FromJBL a where
     deserialize info = to <$> gdeserialize info
 
 instance {-# OVERLAPPABLE #-}FromJBL a => FromJBL (Maybe a) where
-    deserialize info = handle (\(_ :: IOException) -> return Nothing)
-                              (Just <$> deserialize info)
+    deserialize (DeserializationInfo _ Nothing) = return Nothing
+    deserialize (DeserializationInfo jbl (Just key)) =
+        handle (\(_ :: IOException) -> return Nothing)
+               (withCString key
+                            (\cKey ->
+                             checkJBLPropertyType jbl cKey JBVObject $ do
+                                 jblPtr <- createJBLObject
+                                 finally (do
+                                              jblOut <- peek jblPtr
+                                              c_jbl_object_get_fill_jbl jbl
+                                                                        cKey
+                                                                        jblOut
+                                                  >>= checkRC
+                                              Just <$> deserialize (DeserializationInfo jblOut
+                                                                                        Nothing))
+                                         (freeJBLObject jblPtr)))
 
 class GFromJBL f where
     gdeserialize :: DeserializationInfo -> IO (f a)
