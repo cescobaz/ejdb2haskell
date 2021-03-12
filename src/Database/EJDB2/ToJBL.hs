@@ -107,11 +107,13 @@ class ToJBL a where
                           >>= \jblObjectPtr -> pushJBLPtr jblObjectPtr
                       gserialize (from a))
             else (do
-                      liftIO createJBLObject
-                          >>= (\childJblPtr -> liftIO (peek childJblPtr)
-                               >>= setJBLNested >> pushJBLPtr childJblPtr)
+                      currentKey <- getKey
+                      childJblPtr <- liftIO createJBLObject
+                      pushJBLPtr childJblPtr
                       gserialize (from a)
-                      setJBLPtr jblPtr)
+                      setJBLPtr jblPtr
+                      setKey currentKey
+                      liftIO (peek childJblPtr) >>= setJBLNested)
 
 class GToJBL f where
     gserialize :: f a -> SerializationM ()

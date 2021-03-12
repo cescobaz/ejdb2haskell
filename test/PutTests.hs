@@ -43,6 +43,7 @@ putNewTest databaseIO = testCase "putNewTest" $ do
                          , year        = Just 1753
                          , description = Just "wow 🌲"
                          , insects     = Just [ "ant", "beetle" ]
+                         , leaf        = Just (Leaf "canada" 42)
                          }
 
 putOnNewIdTest :: IO Database -> TestTree
