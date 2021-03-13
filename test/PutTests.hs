@@ -4,6 +4,7 @@ module PutTests ( tests ) where
 
 import qualified Data.Aeson             as Aeson
 import qualified Data.HashMap.Strict    as Map
+import qualified Data.HashSet           as HashSet
 import qualified Data.Vector            as Vector
 
 import           Database.EJDB2
@@ -43,6 +44,7 @@ putNewTest databaseIO = testCase "putNewTest" $ do
                          , year        = Just 1753
                          , description = Just "wow 🌲"
                          , insects     = Just [ "ant", "beetle" ]
+                         , ids         = HashSet.fromList [ 12, 786, 31 ]
                          , leaf        = Just (Leaf "canada" 42)
                          , theLeaf     = Leaf "mary" 420
                          }
