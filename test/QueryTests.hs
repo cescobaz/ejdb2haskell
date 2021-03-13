@@ -170,6 +170,7 @@ getListWithStringQueryTest databaseIO = testCase "getListWithStringQuery" $ do
                                      , year        = Just 1753
                                      , description = Just "wow 🌲"
                                      , insects     = Just [ "ant" ]
+                                     , theLeaf     = Leaf "green" 420
                                      }
                  )
                ]
@@ -188,6 +189,7 @@ getListWithStringAtIndexQueryTest databaseIO =
                                          , year        = Just 1753
                                          , description = Just "wow 🌲"
                                          , insects     = Just [ "ant" ]
+                                         , theLeaf     = Leaf "green" 420
                                          }
                      )
                    ]
@@ -243,6 +245,7 @@ getListWithNullQueryTest databaseIO = testCase "getListWithNullQuery" $ do
                                      , description = Just "wow 🌲"
                                      , ratio       = Nothing
                                      , insects     = Just [ "ant" ]
+                                     , theLeaf     = Leaf "green" 420
                                      }
                  )
                ]
@@ -261,6 +264,7 @@ getListWithNullAtIndexQueryTest databaseIO =
                                          , description = Just "wow 🌲"
                                          , ratio       = Nothing
                                          , insects     = Just [ "ant" ]
+                                         , theLeaf     = Leaf "green" 420
                                          }
                      )
                    ]
@@ -280,6 +284,7 @@ getListWithMixedQueryTest databaseIO = testCase "getListWithMixedQuery" $ do
                                      , year        = Just 1753
                                      , description = Just "wow 🌲"
                                      , insects     = Just [ "ant" ]
+                                     , theLeaf     = Leaf "green" 420
                                      }
                  )
                ]
@@ -299,6 +304,7 @@ getListWithTwoStringsQueryTest databaseIO =
                                          , year        = Just 1753
                                          , description = Just "wow 🌲"
                                          , insects     = Just [ "ant" ]
+                                         , theLeaf     = Leaf "green" 420
                                          }
                      )
                    ]

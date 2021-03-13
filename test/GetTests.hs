@@ -44,6 +44,7 @@ getByIdTest databaseIO = testCase "getById" $ do
                                 , year        = Just 1753
                                 , description = Just "wow 🌲"
                                 , insects     = Just [ "ant" ]
+                                , theLeaf     = Leaf "green" 420
                                 }
 
 getByIdNotFoundTest :: IO Database -> TestTree

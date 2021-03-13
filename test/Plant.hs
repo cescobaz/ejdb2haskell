@@ -24,8 +24,9 @@ data Plant = Plant { id          :: Maybe Int
                    , description :: Maybe String
                    , ratio       :: Maybe Double
                    , insects     :: Maybe [String]
-                   , leafs       :: Maybe (HashSet Int)
+                   , ids         :: Maybe (HashSet Int)
                    , leaf        :: Maybe Leaf
+                   , theLeaf     :: Leaf
                    }
     deriving ( Eq, Generic, Show )
 
@@ -37,12 +38,14 @@ instance EJDB2IDObject Plant where
     setId oid o = o { id = Just (fromIntegral oid) }
 
 nothingPlant :: Plant
-nothingPlant = Plant Nothing
-                     Nothing
-                     Nothing
-                     Nothing
-                     Nothing
-                     Nothing
-                     Nothing
-                     Nothing
-                     Nothing
+nothingPlant =
+    Plant Nothing
+          Nothing
+          Nothing
+          Nothing
+          Nothing
+          Nothing
+          Nothing
+          Nothing
+          Nothing
+          (Leaf "" 0)

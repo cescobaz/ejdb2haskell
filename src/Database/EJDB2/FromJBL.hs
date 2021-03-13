@@ -32,6 +32,8 @@ class FromJBL a where
     deserialize :: DeserializationInfo -> IO a
     default deserialize
         :: (Generic a, GFromJBL (Rep a)) => DeserializationInfo -> IO a
+    deserialize info@(DeserializationInfo jbl (Just _)) = deserialize info
+        >>= maybe (deserialize (DeserializationInfo jbl Nothing)) return
     deserialize info = to <$> gdeserialize info
 
 instance {-# OVERLAPPABLE #-}FromJBL a => FromJBL (Maybe a) where
