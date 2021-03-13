@@ -47,6 +47,7 @@ putNewTest databaseIO = testCase "putNewTest" $ do
                          , ids         = HashSet.fromList [ 12, 786, 31 ]
                          , leaf        = Just (Leaf "canada" 42)
                          , theLeaf     = Leaf "mary" 420
+                         , leafs       = [ Leaf "a" 10, Leaf "b" 20 ]
                          }
 
 putOnNewIdTest :: IO Database -> TestTree

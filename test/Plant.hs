@@ -27,6 +27,7 @@ data Plant = Plant { id          :: Maybe Int
                    , ids         :: HashSet Int
                    , leaf        :: Maybe Leaf
                    , theLeaf     :: Leaf
+                   , leafs       :: [Leaf]
                    }
     deriving ( Eq, Generic, Show )
 
@@ -49,3 +50,4 @@ nothingPlant =
           HashSet.empty
           Nothing
           (Leaf "" 0)
+          []

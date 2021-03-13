@@ -139,8 +139,9 @@ checkJBLValueType :: JBL -> JBLType -> IO (Maybe a) -> IO (Maybe a)
 checkJBLValueType jbl jblType computation = c_jbl_type jbl
     >>= (\t -> if t == JBVNull
                then return Nothing
-               else if t == jblType then computation else fail "ciao")
-    . decodeJBLTypeT
+               else if t == jblType
+                    then computation
+                    else fail "incorrect type for jbl") . decodeJBLTypeT
 
 peekOrNothing :: Storable a => Ptr a -> IO (Maybe a)
 peekOrNothing ptr
