@@ -24,7 +24,7 @@ data Plant = Plant { id          :: Maybe Int
                    , description :: Maybe String
                    , ratio       :: Maybe Double
                    , insects     :: Maybe [String]
-                   , ids         :: Maybe (HashSet Int)
+                   , ids         :: HashSet Int
                    , leaf        :: Maybe Leaf
                    , theLeaf     :: Leaf
                    }
@@ -46,6 +46,6 @@ nothingPlant =
           Nothing
           Nothing
           Nothing
-          Nothing
+          HashSet.empty
           Nothing
           (Leaf "" 0)

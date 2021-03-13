@@ -6,6 +6,7 @@ import           Control.Exception
 import           Control.Monad
 
 import           Data.Aeson             ( Value )
+import qualified Data.HashSet           as HashSet
 import           Data.Int
 
 import           Database.EJDB2
@@ -44,6 +45,7 @@ getByIdTest databaseIO = testCase "getById" $ do
                                 , year        = Just 1753
                                 , description = Just "wow 🌲"
                                 , insects     = Just [ "ant" ]
+                                , ids         = HashSet.fromList [ 42, 23, 35 ]
                                 , theLeaf     = Leaf "green" 420
                                 }
 

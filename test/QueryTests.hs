@@ -3,6 +3,7 @@ module QueryTests ( tests ) where
 import           Asserts
 
 import           Data.Aeson             ( Value )
+import qualified Data.HashSet           as HashSet
 import           Data.Int
 
 import           Database.EJDB2
@@ -170,6 +171,8 @@ getListWithStringQueryTest databaseIO = testCase "getListWithStringQuery" $ do
                                      , year        = Just 1753
                                      , description = Just "wow 🌲"
                                      , insects     = Just [ "ant" ]
+                                     , ids         =
+                                           HashSet.fromList [ 42, 23, 35 ]
                                      , theLeaf     = Leaf "green" 420
                                      }
                  )
@@ -189,6 +192,8 @@ getListWithStringAtIndexQueryTest databaseIO =
                                          , year        = Just 1753
                                          , description = Just "wow 🌲"
                                          , insects     = Just [ "ant" ]
+                                         , ids         =
+                                               HashSet.fromList [ 42, 23, 35 ]
                                          , theLeaf     = Leaf "green" 420
                                          }
                      )
@@ -245,6 +250,8 @@ getListWithNullQueryTest databaseIO = testCase "getListWithNullQuery" $ do
                                      , description = Just "wow 🌲"
                                      , ratio       = Nothing
                                      , insects     = Just [ "ant" ]
+                                     , ids         =
+                                           HashSet.fromList [ 42, 23, 35 ]
                                      , theLeaf     = Leaf "green" 420
                                      }
                  )
@@ -264,6 +271,8 @@ getListWithNullAtIndexQueryTest databaseIO =
                                          , description = Just "wow 🌲"
                                          , ratio       = Nothing
                                          , insects     = Just [ "ant" ]
+                                         , ids         =
+                                               HashSet.fromList [ 42, 23, 35 ]
                                          , theLeaf     = Leaf "green" 420
                                          }
                      )
@@ -284,6 +293,8 @@ getListWithMixedQueryTest databaseIO = testCase "getListWithMixedQuery" $ do
                                      , year        = Just 1753
                                      , description = Just "wow 🌲"
                                      , insects     = Just [ "ant" ]
+                                     , ids         =
+                                           HashSet.fromList [ 42, 23, 35 ]
                                      , theLeaf     = Leaf "green" 420
                                      }
                  )
@@ -304,6 +315,8 @@ getListWithTwoStringsQueryTest databaseIO =
                                          , year        = Just 1753
                                          , description = Just "wow 🌲"
                                          , insects     = Just [ "ant" ]
+                                         , ids         =
+                                               HashSet.fromList [ 42, 23, 35 ]
                                          , theLeaf     = Leaf "green" 420
                                          }
                      )
