@@ -1,5 +1,6 @@
 module Database.EJDB2.JBL ( ToJBL, encode, FromJBL, decode ) where
 
+import           Control.Exception           ( finally )
 import           Control.Monad.IO.Class
 
 import           Database.EJDB2.Bindings.JBL
@@ -14,10 +15,8 @@ encode :: ToJBL a => a -> (JBL -> IO b) -> IO b
 encode obj f = do
     state <- liftIO $ execSerialize (serialize obj) (initState nullPtr)
     jbl <- peek (currentJBLPtr state)
-    b <- f jbl
-    mapM_ freeJBLObject (jblPtrs state)
-    mapM_ free (cStrings state)
-    return b
+    finally (f jbl)
+            (mapM_ freeJBLObject (jblPtrs state) >> mapM_ free (cStrings state))
 
 decode :: FromJBL a => JBL -> IO (Maybe a)
 decode jbl = Just <$> deserialize (DeserializationInfo jbl Nothing)

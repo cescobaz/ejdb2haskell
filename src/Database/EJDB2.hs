@@ -216,10 +216,10 @@ putNew :: JBL.ToJBL a
        -> a -- ^ Document
        -> IO Int64 -- ^ New document identifier. Not zero
 
-putNew (Database _ ejdb) collection obj = JBL.encode obj $
-    \doc -> withCString collection $ \cCollection -> alloca $ \didPtr ->
-    c_ejdb_put_new ejdb cCollection doc didPtr >>= checkRC >> peek didPtr
-    >>= \(CIntMax int) -> return int
+putNew (Database _ ejdb) collection obj =
+    JBL.encode obj $ \doc -> withCString collection $ \cCollection ->
+    alloca (\didPtr -> c_ejdb_put_new ejdb cCollection doc didPtr >>= checkRC
+            >> peek didPtr >>= \(CIntMax int) -> return int)
 
 {-|
   Save a given document under specified id.
