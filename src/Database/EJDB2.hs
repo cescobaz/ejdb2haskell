@@ -51,6 +51,7 @@ module Database.EJDB2
     , JBL.ToJBL
     ) where
 
+import           Control.Concurrent.QSem
 import           Control.Exception
 import           Control.Monad
 
@@ -80,7 +81,7 @@ import           Foreign.C.Types
 import           Prelude                                hiding ( init )
 
 -- | Reference to database. You can create it by 'open'.
-data Database = Database (Ptr EJDB) EJDB
+data Database = Database (Ptr EJDB) EJDB QSem
 
 class EJDB2IDObject a where
     setId :: Int64 -> a -> a
@@ -116,15 +117,17 @@ open opts = do
     with optsB $ \optsPtr -> do
         result <- decodeRC <$> c_ejdb_open optsPtr ejdbPtr
         if result == Ok
-            then Database ejdbPtr <$> peek ejdbPtr
+            then peek ejdbPtr >>= \ejdb -> newQSem 1 >>= \sem ->
+                return (Database ejdbPtr ejdb sem)
             else free ejdbPtr >> fail (show result)
 
 {-|
   Closes storage and frees up all resources.
 -}
 close :: Database -> IO ()
-close (Database ejdbPtr _) = do
-    result <- decodeRC <$> c_ejdb_close ejdbPtr
+close (Database ejdbPtr _ sem) = do
+    result <- decodeRC
+        <$> bracket_ (waitQSem sem) (signalQSem sem) (c_ejdb_close ejdbPtr)
     if result == Ok then free ejdbPtr else fail $ show result
 
 -- | Retrieve document identified by given id from collection.
@@ -133,10 +136,12 @@ getById :: JBL.FromJBL a
         -> String -- ^ Collection name
         -> Int64 -- ^ Document identifier. Not zero
         -> IO (Maybe a)
-getById (Database _ ejdb) collection did = alloca $ \jblPtr ->
+getById (Database _ ejdb sem) collection did = alloca $ \jblPtr ->
     finally (do
                  rc <- withCString collection $ \cCollection ->
-                     c_ejdb_get ejdb cCollection (CIntMax did) jblPtr
+                     bracket_ (waitQSem sem)
+                              (signalQSem sem)
+                              (c_ejdb_get ejdb cCollection (CIntMax did) jblPtr)
                  let result = decodeRC rc
                  case result of
                      Ok -> peek jblPtr >>= JBL.decode
@@ -146,15 +151,18 @@ getById (Database _ ejdb) collection did = alloca $ \jblPtr ->
 
 -- | Executes a given query and returns the number of documents.
 getCount :: Database -> Query q -> IO Int64
-getCount (Database _ ejdb) query = withQuery query $ \jql -> alloca $
-    \countPtr -> c_ejdb_count ejdb jql countPtr 0 >>= checkRC >> peek countPtr
-    >>= \(CIntMax int) -> return int
+getCount (Database _ ejdb sem) query =
+    withQuery query $ \jql -> alloca $ \countPtr ->
+    bracket_ (waitQSem sem) (signalQSem sem) (c_ejdb_count ejdb jql countPtr 0)
+    >>= checkRC >> peek countPtr >>= \(CIntMax int) -> return int
 
 exec :: EJDBExecVisitor -> Database -> Query q -> IO ()
-exec v (Database _ ejdb) query = withQuery query $ \jql -> do
+exec v (Database _ ejdb sem) query = withQuery query $ \jql -> do
     cVisitor <- mkEJDBExecVisitor v
     let e = EJDBExec.zero { db = ejdb, q = jql, EJDBExec.visitor = cVisitor }
-    finally (with e c_ejdb_exec >>= checkRC) (freeHaskellFunPtr cVisitor)
+    finally (with e (bracket_ (waitQSem sem) (signalQSem sem) . c_ejdb_exec)
+             >>= checkRC)
+            (freeHaskellFunPtr cVisitor)
 
 -- | Iterate over query result building the result
 fold :: JBL.FromJBL b
@@ -216,10 +224,12 @@ putNew :: JBL.ToJBL a
        -> a -- ^ Document
        -> IO Int64 -- ^ New document identifier. Not zero
 
-putNew (Database _ ejdb) collection obj =
+putNew (Database _ ejdb sem) collection obj =
     JBL.encode obj $ \doc -> withCString collection $ \cCollection ->
-    alloca (\didPtr -> c_ejdb_put_new ejdb cCollection doc didPtr >>= checkRC
-            >> peek didPtr >>= \(CIntMax int) -> return int)
+    alloca (\didPtr -> bracket_ (waitQSem sem)
+                                (signalQSem sem)
+                                (c_ejdb_put_new ejdb cCollection doc didPtr)
+            >>= checkRC >> peek didPtr >>= \(CIntMax int) -> return int)
 
 {-|
   Save a given document under specified id.
@@ -230,9 +240,11 @@ put :: JBL.ToJBL a
     -> a -- ^ Document
     -> Int64 -- ^ Document identifier. Not zero
     -> IO ()
-put (Database _ ejdb) collection obj did =
+put (Database _ ejdb sem) collection obj did =
     JBL.encode obj $ \doc -> withCString collection $ \cCollection ->
-    c_ejdb_put ejdb cCollection doc (CIntMax did) >>= checkRC
+    bracket_ (waitQSem sem)
+             (signalQSem sem)
+             (c_ejdb_put ejdb cCollection doc (CIntMax did)) >>= checkRC
 
 {-|
   Apply JSON merge patch (rfc7396) to the document identified by id or insert new document under specified id.
@@ -245,9 +257,12 @@ mergeOrPut :: Aeson.ToJSON a
            -> a -- ^ JSON merge patch conformed to rfc7396 specification
            -> Int64 -- ^ Document identifier. Not zero
            -> IO ()
-mergeOrPut (Database _ ejdb) collection obj did = withCString collection $
+mergeOrPut (Database _ ejdb sem) collection obj did = withCString collection $
     \cCollection -> BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
-    c_ejdb_merge_or_put ejdb cCollection jsonPatch (CIntMax did) >>= checkRC
+    bracket_ (waitQSem sem)
+             (signalQSem sem)
+             (c_ejdb_merge_or_put ejdb cCollection jsonPatch (CIntMax did))
+    >>= checkRC
 
 {-|
   Apply rfc6902\/rfc7396 JSON patch to the document identified by id.
@@ -258,9 +273,11 @@ patch :: Aeson.ToJSON a
       -> a -- ^ JSON patch conformed to rfc6902 or rfc7396 specification
       -> Int64 -- ^ Document identifier. Not zero
       -> IO ()
-patch (Database _ ejdb) collection obj did = withCString collection $
+patch (Database _ ejdb sem) collection obj did = withCString collection $
     \cCollection -> BS.useAsCString (encodeToByteString obj) $ \jsonPatch ->
-    c_ejdb_patch ejdb cCollection jsonPatch (CIntMax did) >>= checkRC
+    bracket_ (waitQSem sem)
+             (signalQSem sem)
+             (c_ejdb_patch ejdb cCollection jsonPatch (CIntMax did)) >>= checkRC
 
 encodeToByteString :: Aeson.ToJSON a => a -> BS.ByteString
 encodeToByteString obj = BSL.toStrict $ Aeson.encode obj
@@ -272,8 +289,11 @@ delete :: Database
        -> String -- ^ Collection name
        -> Int64 -- ^ Document identifier. Not zero
        -> IO ()
-delete (Database _ ejdb) collection did = withCString collection $
-    \cCollection -> c_ejdb_del ejdb cCollection (CIntMax did) >>= checkRC
+delete (Database _ ejdb sem) collection did = withCString collection $
+    \cCollection -> bracket_ (waitQSem sem)
+                             (signalQSem sem)
+                             (c_ejdb_del ejdb cCollection (CIntMax did))
+    >>= checkRC
 
 {-|
   Create collection with given name if it has not existed before
@@ -281,8 +301,13 @@ delete (Database _ ejdb) collection did = withCString collection $
 ensureCollection :: Database
                  -> String -- ^ Collection name
                  -> IO ()
-ensureCollection (Database _ ejdb) collection =
-    withCString collection (c_ejdb_ensure_collection ejdb >=> checkRC)
+ensureCollection (Database _ ejdb sem) collection =
+    withCString collection
+                (\cCollection ->
+                 bracket_ (waitQSem sem)
+                          (signalQSem sem)
+                          (c_ejdb_ensure_collection ejdb cCollection)
+                 >>= checkRC)
 
 {-|
   Remove collection under the given name.
@@ -290,8 +315,13 @@ ensureCollection (Database _ ejdb) collection =
 removeCollection :: Database
                  -> String -- ^ Collection name
                  -> IO ()
-removeCollection (Database _ ejdb) collection =
-    withCString collection (c_ejdb_remove_collection ejdb >=> checkRC)
+removeCollection (Database _ ejdb sem) collection =
+    withCString collection
+                (\cCollection ->
+                 bracket_ (waitQSem sem)
+                          (signalQSem sem)
+                          (c_ejdb_remove_collection ejdb cCollection)
+                 >>= checkRC)
 
 {-|
   Rename collection to new name.
@@ -300,10 +330,15 @@ renameCollection :: Database
                  -> String -- ^ Old collection name
                  -> String -- ^ New collection name
                  -> IO ()
-renameCollection (Database _ ejdb) collection newCollection =
+renameCollection (Database _ ejdb sem) collection newCollection =
     withCString collection $ \cCollection ->
     withCString newCollection
-                (c_ejdb_rename_collection ejdb cCollection >=> checkRC)
+                (\cNewCollection ->
+                 bracket_ (waitQSem sem)
+                          (signalQSem sem)
+                          (c_ejdb_rename_collection ejdb
+                                                    cCollection
+                                                    cNewCollection) >>= checkRC)
 
 {-|
   Returns JSON document describing database structure. You can use the convenient data 'Database.EJDB2.Meta.Meta'
@@ -312,7 +347,8 @@ getMeta :: JBL.FromJBL a
         => Database
         -> IO (Maybe a) -- ^ JSON object describing ejdb storage. See data 'Database.EJDB2.Meta.Meta'
 
-getMeta (Database _ ejdb) = alloca $ \jblPtr -> c_ejdb_get_meta ejdb jblPtr
+getMeta (Database _ ejdb sem) = alloca $ \jblPtr ->
+    bracket_ (waitQSem sem) (signalQSem sem) (c_ejdb_get_meta ejdb jblPtr)
     >>= checkRC >> finally (peek jblPtr >>= JBL.decode) (c_jbl_destroy jblPtr)
 
 {-|
@@ -327,9 +363,11 @@ ensureIndex :: Database
             -> String -- ^ rfc6901 JSON pointer to indexed field
             -> [IndexMode.IndexMode] -- ^ Index mode
             -> IO ()
-ensureIndex (Database _ ejdb) collection path indexMode =
-    withCString collection $ \cCollection -> withCString path $
-    \cPath -> c_ejdb_ensure_index ejdb cCollection cPath mode >>= checkRC
+ensureIndex (Database _ ejdb sem) collection path indexMode =
+    withCString collection $ \cCollection -> withCString path $ \cPath ->
+    bracket_ (waitQSem sem)
+             (signalQSem sem)
+             (c_ejdb_ensure_index ejdb cCollection cPath mode) >>= checkRC
   where
     mode = IndexMode.unIndexMode $ IndexMode.combineIndexMode indexMode
 
@@ -341,9 +379,11 @@ removeIndex :: Database
             -> String -- ^ rfc6901 JSON pointer to indexed field
             -> [IndexMode.IndexMode] -- ^ Index mode
             -> IO ()
-removeIndex (Database _ ejdb) collection path indexMode =
-    withCString collection $ \cCollection -> withCString path $
-    \cPath -> c_ejdb_remove_index ejdb cCollection cPath mode >>= checkRC
+removeIndex (Database _ ejdb sem) collection path indexMode =
+    withCString collection $ \cCollection -> withCString path $ \cPath ->
+    bracket_ (waitQSem sem)
+             (signalQSem sem)
+             (c_ejdb_remove_index ejdb cCollection cPath mode) >>= checkRC
   where
     mode = IndexMode.unIndexMode $ IndexMode.combineIndexMode indexMode
 
@@ -363,7 +403,10 @@ onlineBackup :: Database
              -> String -- ^ Backup file path
              -> IO Word64 -- ^ Backup completion timestamp
 
-onlineBackup (Database _ ejdb) filePath = withCString filePath $ \cFilePath ->
-    alloca $ \timestampPtr -> c_ejdb_online_backup ejdb timestampPtr cFilePath
-    >>= checkRC >> peek timestampPtr >>= \(CUIntMax t) -> return t
+onlineBackup (Database _ ejdb sem) filePath =
+    withCString filePath $ \cFilePath -> alloca $ \timestampPtr ->
+    bracket_ (waitQSem sem)
+             (signalQSem sem)
+             (c_ejdb_online_backup ejdb timestampPtr cFilePath) >>= checkRC
+    >> peek timestampPtr >>= \(CUIntMax t) -> return t
 
