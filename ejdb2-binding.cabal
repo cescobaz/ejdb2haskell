@@ -38,7 +38,7 @@ library
                      , Database.EJDB2.Bindings.Types.EJDB
                      , Database.EJDB2.Bindings.Types.EJDBExec
                      , Database.EJDB2.Bindings.Types.EJDBDoc
-  build-depends:       base >=4.12
+  build-depends:       base >=4.12 && bas <=4.15
                      , bytestring ^>=0.10.10.0
                      , aeson ^>=1.4.6.0
                      , unordered-containers ^>=0.2.10.0
@@ -65,7 +65,7 @@ test-suite ejdb2haskell-test
                        IndexTests
                        OnlineBackupTests
                        FoldTests
-  build-depends:       base >=4.12
+  build-depends:       base >=4.12 && bas <=4.15
                      , tasty ^>=1.2.3
                      , tasty-hunit ^>=0.10.0.2
                      , aeson ^>=1.4.6.0
