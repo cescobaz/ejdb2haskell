@@ -1,7 +1,6 @@
 {-# LANGUAGE CPP #-}
 module Database.EJDB2.Result where
 
-import           Foreign
 import           Foreign.C.Types
 
 #include <ejdb2/ejdb2.h>

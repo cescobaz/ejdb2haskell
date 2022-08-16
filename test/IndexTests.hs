@@ -28,8 +28,7 @@ getMetaTest :: IO Database -> TestTree
 getMetaTest databaseIO = testCase "getMetaTest" $ do
     database <- databaseIO
     Just meta <- getMeta database
-    let (major : '.' : minor : '.' : _) = Meta.version meta
-    [ major, '.', minor ] @?= "2.0"
+    (take 2 . Meta.version) meta @?= "2."
 
 createAndRemoveIndexTest :: IO Database -> TestTree
 createAndRemoveIndexTest databaseIO = testCase "createAndRemoveIndexTest" $ do

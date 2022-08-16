@@ -2,8 +2,9 @@
 
 module Database.EJDB2.IndexMeta where
 
-import           Data.Aeson   ( FromJSON )
 import           Data.Int
+
+import           Database.EJDB2.JBL
 
 import           GHC.Generics
 
@@ -17,5 +18,5 @@ data IndexMeta =
               }
     deriving ( Eq, Generic, Show )
 
-instance FromJSON IndexMeta
+instance FromJBL IndexMeta
 

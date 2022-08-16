@@ -4,6 +4,7 @@ module PutTests ( tests ) where
 
 import qualified Data.Aeson             as Aeson
 import qualified Data.HashMap.Strict    as Map
+import qualified Data.HashSet           as HashSet
 import qualified Data.Vector            as Vector
 
 import           Database.EJDB2
@@ -42,6 +43,11 @@ putNewTest databaseIO = testCase "putNewTest" $ do
                          , isTree      = Just True
                          , year        = Just 1753
                          , description = Just "wow 🌲"
+                         , insects     = Just [ "ant", "beetle" ]
+                         , ids         = HashSet.fromList [ 12, 786, 31 ]
+                         , leaf        = Just (Leaf "canada" 42)
+                         , theLeaf     = Leaf "mary" 420
+                         , leafs       = [ Leaf "a" 10, Leaf "b" 20 ]
                          }
 
 putOnNewIdTest :: IO Database -> TestTree
@@ -78,10 +84,16 @@ putOnExistingIdTest databaseIO = testCase "putOnExistingIdTest" $ do
 mergeOrPutNewTest :: IO Database -> TestTree
 mergeOrPutNewTest databaseIO = testCase "mergeOrPutNewTest" $ do
     database <- databaseIO
-    mergeOrPut database "plants" plant 4242
+    mergeOrPut database "plants" jsonPut 4242
     storedPlant <- getById database "plants" 4242
     storedPlant @?= Just plant
   where
+    jsonPut = Aeson.Object $ Map.fromList [ ("name", "pinus")
+                                          , ("isTree", Aeson.Bool True)
+                                          , ("year", Aeson.Number 1753)
+                                          , ("description", "wow 🌲")
+                                          ]
+
     plant = nothingPlant { id          = Nothing
                          , name        = Just "pinus"
                          , isTree      = Just True
@@ -128,16 +140,13 @@ patchTest databaseIO = testCase "patchTest" $ do
                          }
 
     jsonPatch = Aeson.Array $
-        Vector.fromList [ Aeson.Object $ Map.fromList [ ("op", "remove")
-                                                      , ("path", "/year")
-                                                      ]
+        Vector.fromList [ Aeson.Object $
+                          Map.fromList [ ("op", "remove"), ("path", "/year") ]
                         , Aeson.Object $
-                              Map.fromList [ ("op", "replace")
-                                           , ("path", "/description")
-                                           , ( "value"
-                                                 , "a tipical christmas tree"
-                                                 )
-                                           ]
+                          Map.fromList [ ("op", "replace")
+                                       , ("path", "/description")
+                                       , ("value", "a tipical christmas tree")
+                                       ]
                         ]
 
     lastPlant =

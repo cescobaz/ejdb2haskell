@@ -35,7 +35,7 @@ onlineBackupTest databaseIO = testCase "onlineBackupTest" $ do
     _ <- onlineBackup database backupFilePath
     backupFileExists <- doesFileExist backupFilePath
     backupFileExists @? "backup file exists"
-    databaseLast <- open $ minimalOptions backupFilePath [ readonlyOpenFlags ]
+    databaseLast <- open $ minimalOptions backupFilePath []
     catch (do
                backupPlant <- getById databaseLast "plants" id
                backupPlant @?= Just plant

@@ -5,7 +5,6 @@ module Database.EJDB2.Bindings.EJDB2 where
 import           Database.EJDB2.Bindings.JBL
 import           Database.EJDB2.Bindings.JQL
 import           Database.EJDB2.Bindings.Types.EJDB
-import           Database.EJDB2.Bindings.Types.EJDBDoc
 import           Database.EJDB2.Bindings.Types.EJDBExec
 import           Database.EJDB2.Options
 import           Database.EJDB2.Result

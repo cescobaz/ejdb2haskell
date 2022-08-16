@@ -11,8 +11,6 @@ module Database.EJDB2.HTTP
 import           Foreign
 import           Foreign.C.String
 import           Foreign.C.Types
-import           Foreign.Marshal.Utils
-import           Data.Int
 
 #include <ejdb2/ejdb2.h>
 

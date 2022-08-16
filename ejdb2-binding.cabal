@@ -3,7 +3,7 @@ name:                ejdb2-binding
 category:            Database
 description:         Binding to EJDB2 C library, an embedded JSON noSQL database. Package requires libejdb2 to build. Please see the README on GitHub at <https://github.com/cescobaz/ejdb2haskell#readme>
 synopsis:            Binding to EJDB2 C library, an embedded JSON noSQL database
-version:             0.3.0.2
+version:             0.4.0.0
 license:             MIT
 license-file:        LICENSE
 homepage:            https://github.com/cescobaz/ejdb2haskell#readme
@@ -30,6 +30,9 @@ library
   other-modules:
                        Database.EJDB2.Query
                      , Database.EJDB2.JBL
+                     , Database.EJDB2.FromJBL
+                     , Database.EJDB2.ToJBL
+                     , Database.EJDB2.Bindings.JBLStruct
                      , Database.EJDB2.Result
                      , Database.EJDB2.IndexMode
                      , Database.EJDB2.Bindings.EJDB2
@@ -42,12 +45,14 @@ library
                      , bytestring ^>=0.10.10.0
                      , aeson ^>=1.4.6.0
                      , unordered-containers ^>=0.2.10.0
+                     , hashable ^>=1.3.1.0
                      , mtl ^>=2.2.2
   build-tool-depends:  hsc2hs:hsc2hs
   extra-libraries:     ejdb2
   pkgconfig-depends:   libejdb2
   hs-source-dirs:      src
   default-language:    Haskell2010
+  ghc-options:         -Wall
 
 test-suite ejdb2haskell-test
   default-language:    Haskell2010

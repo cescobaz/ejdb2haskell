@@ -3,10 +3,7 @@
 module Database.EJDB2.Options
         ( Options(..), zero, OptionsB, options, build ) where
 
-import           Data.ByteString.Char8
-
 import           Foreign
-import           Foreign.C.String
 import           Foreign.C.Types
 
 import qualified Database.EJDB2.KV                as KV
