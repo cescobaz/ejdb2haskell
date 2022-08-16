@@ -43,8 +43,7 @@ putNewTest databaseIO = testCase "putNewTest" $ do
 getListTest' :: IO Database -> TestTree
 getListTest' databaseIO = testCase "getList'" $ do
     database <- databaseIO
-    query <- Query.fromString "@plants/[isTree=:tree] | asc /name"
-    Query.setBool False "tree" query
+    query <- fromString "@plants/[isTree=:tree] | asc /name" $ setBool False "tree"
     plants <- getList' database query
     plants @?= [ Just Plant { id          = Just 2
                             , name        = Just "gentiana brentae"
